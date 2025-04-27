@@ -6,7 +6,7 @@ const CrearTurno = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     sede: "Palermo",
-    nivel: "Principiantes",
+    nivel: "Blanco",
     dia: "Lunes",
     hora: "",
     cuposDisponibles: 10, // Se agregó este campo
@@ -29,7 +29,7 @@ const CrearTurno = () => {
     setError("");
     try {
       const token = localStorage.getItem("token");
-      await axios.post("http://localhost:5000/api/turnos", formData, {
+      await axios.post("http://localhost:5000/api/turnos/", formData, {
         headers: { Authorization: `Bearer ${token}` }, // Token para autenticación
       });
       navigate("/turnos"); // Redirige a la lista de turnos
@@ -67,9 +67,9 @@ const CrearTurno = () => {
               onChange={handleChange}
               className="block w-full mt-1 border-gray-300 rounded-md"
             >
-              <option value="Principiantes">Principiantes</option>
-              <option value="Intermedios">Intermedios</option>
-              <option value="Avanzados">Avanzados</option>
+              <option value="Blanco">Blanco</option>
+              <option value="Azul">Azul</option>
+              <option value="Violeta">Violeta</option>
             </select>
           </label>
 
