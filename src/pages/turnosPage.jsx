@@ -5,32 +5,39 @@ const TurnosPage = () => {
   const [turnos, setTurnos] = useState([]);
   const [groupedTurnos, setGroupedTurnos] = useState({});
   const [selectedTurnos, setSelectedTurnos] = useState([]);
-  const [filtroDia, setFiltroDia] = useState("Todos"); // Estado para el filtro
+  const [filtroDia, setFiltroDia] = useState("Todos"); // Semana completa o día específico
+  const [tipoTurno, setTipoTurno] = useState("Mensuales"); // Nuevo estado: "Mensuales" o "Semanales"
 
   useEffect(() => {
-    const fetchTurnos = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        console.log("Token usado:", token);
-
-        const response = await axios.get("http://localhost:5000/api/turnos/todos", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        console.log("Turnos recibidos:", response.data);
-
-        if (Array.isArray(response.data)) {
-          setTurnos(response.data);
-        } else {
-          console.error("La API no devolvió un array:", response.data);
-        }
-      } catch (error) {
-        console.error("Error al obtener los turnos:", error.response?.data || error.message);
-      }
-    };
-
     fetchTurnos();
-  }, []);
+  }, [tipoTurno]); // Ahora depende de tipoTurno también
+
+  const fetchTurnos = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      console.log("Token usado:", token);
+
+      // Según el tipo de turno, cambio la ruta
+      const endpoint =
+        tipoTurno === "Mensuales"
+          ? "http://localhost:5000/api/turnos/todos"
+          : "	http://localhost:5000/api/turnoRouSema/todoSema";
+
+      const response = await axios.get(endpoint, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      console.log("Turnos recibidos:", response.data);
+
+      if (Array.isArray(response.data)) {
+        setTurnos(response.data);
+      } else {
+        console.error("La API no devolvió un array:", response.data);
+      }
+    } catch (error) {
+      console.error("Error al obtener los turnos:", error.response?.data || error.message);
+    }
+  };
 
   useEffect(() => {
     if (turnos.length > 0) {
@@ -38,14 +45,13 @@ const TurnosPage = () => {
     }
   }, [turnos]);
 
-  // Agrupar turnos por día, solo mostrando los que tienen cupos disponibles
   const groupTurnosByDay = (turnos) => {
     const days = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
     let grouped = {};
 
     days.forEach((day) => {
       grouped[day] = turnos
-        .filter((turno) => turno.dia === day && turno.cuposDisponibles > 0) // Solo turnos con cupos disponibles
+        .filter((turno) => turno.dia === day && turno.cuposDisponibles > 0)
         .sort((a, b) => {
           const convertToMinutes = (time) => {
             if (!time) return 0;
@@ -72,8 +78,18 @@ const TurnosPage = () => {
     <div className="min-h-screen bg-gray-100 p-6">
       <h2 className="text-2xl font-bold text-center text-gray-800 mb-4">Calendario de Turnos</h2>
 
-      {/* Filtro de días */}
-      <div className="flex justify-center mb-4">
+      {/* Selector de tipo de turno */}
+      <div className="flex justify-center mb-4 gap-4">
+        <select
+          className="p-2 border rounded-lg"
+          value={tipoTurno}
+          onChange={(e) => setTipoTurno(e.target.value)}
+        >
+          <option value="Mensuales">Turnos Mensuales</option>
+          <option value="Semanales">Turnos Semanales</option>
+        </select>
+
+        {/* Filtro de días */}
         <select
           className="p-2 border rounded-lg"
           value={filtroDia}
@@ -105,7 +121,7 @@ const TurnosPage = () => {
             <tr>
               {filtroDia === "Todos"
                 ? ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"].map((day) => (
-                    <td key={day} className="py-2 px-4 border-b">
+                    <td key={day} className="py-2 px-4 border-b align-top">
                       {groupedTurnos[day] && groupedTurnos[day].length > 0 ? (
                         <ul>
                           {groupedTurnos[day].map((turno) => (
@@ -118,7 +134,7 @@ const TurnosPage = () => {
                               }`}
                               onClick={() => toggleSelectTurno(turno._id)}
                             >
-                              <span className="font-semibold">{turno.nivel}</span> - {turno.dia} a las {turno.hora} 
+                              <span className="font-semibold">{turno.nivel}</span> - {turno.dia} a las {turno.hora}
                               - <span className="italic text-blue-600">{turno.sede}</span>
                               <div className="text-sm text-gray-600">
                                 Cupos disponibles: {turno.cuposDisponibles}
@@ -132,7 +148,7 @@ const TurnosPage = () => {
                     </td>
                   ))
                 : [filtroDia].map((day) => (
-                    <td key={day} className="py-2 px-4 border-b">
+                    <td key={day} className="py-2 px-4 border-b align-top">
                       {groupedTurnos[day] && groupedTurnos[day].length > 0 ? (
                         <ul>
                           {groupedTurnos[day].map((turno) => (
@@ -145,7 +161,7 @@ const TurnosPage = () => {
                               }`}
                               onClick={() => toggleSelectTurno(turno._id)}
                             >
-                              <span className="font-semibold">{turno.nivel}</span> - {turno.dia} a las {turno.hora} 
+                              <span className="font-semibold">{turno.nivel}</span> - {turno.dia} a las {turno.hora}
                               - <span className="italic text-blue-600">{turno.sede}</span>
                               <div className="text-sm text-gray-600">
                                 Cupos disponibles: {turno.cuposDisponibles}
