@@ -8,6 +8,7 @@ const AsignarTurnos = () => {
   const [mensaje, setMensaje] = useState(null);
   const [cargandoTurno, setCargandoTurno] = useState(null);
   const [confirmarOtro, setConfirmarOtro] = useState(false);
+  const [diaFiltro, setDiaFiltro] = useState("");
 
   const token = localStorage.getItem("token");
   const headers = { Authorization: `Bearer ${token}` };
@@ -27,10 +28,26 @@ const AsignarTurnos = () => {
     }
   };
 
-  const obtenerTurnosDisponibles = async () => {
+  const obtenerTurnosDisponibles = async (diaFiltro = "") => {
     try {
-      const res = await axios.get("http://localhost:5000/api/turnos/todos", { headers });
-      setTurnos(res.data);
+      const url = diaFiltro
+        ? `http://localhost:5000/api/turnos/todos?dia=${encodeURIComponent(diaFiltro)}`
+        : "http://localhost:5000/api/turnos/todos";
+
+      const res = await axios.get(url, { headers });
+      
+      // Ordenar los turnos por día y hora
+      const turnosOrdenados = res.data.sort((a, b) => {
+        const dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+        const diaA = dias.indexOf(a.dia);
+        const diaB = dias.indexOf(b.dia);
+        if (diaA === diaB) {
+          return a.hora.localeCompare(b.hora);
+        }
+        return diaA - diaB;
+      });
+
+      setTurnos(turnosOrdenados);
     } catch (err) {
       console.error("Error al obtener turnos", err);
     }
@@ -50,7 +67,6 @@ const AsignarTurnos = () => {
     try {
       const creditos = await obtenerCreditosUsuario(usuarioId);
       if (creditos.length > 0) {
-        // Suponemos que el crédito más antiguo es el primero en el arreglo
         const creditoMasAntiguo = creditos[0];
         await axios.delete(`http://localhost:5000/api/creditos/${creditoMasAntiguo._id}`, { headers });
         console.log("Crédito eliminado", creditoMasAntiguo._id);
@@ -77,7 +93,7 @@ const AsignarTurnos = () => {
       await eliminarCreditoMasAntiguo(usuarioSeleccionado._id);
 
       setConfirmarOtro(true);
-      obtenerTurnosDisponibles();
+      obtenerTurnosDisponibles(diaFiltro);  // Refrescar los turnos según el filtro aplicado
     } catch (error) {
       setMensaje({ tipo: "error", texto: error.response?.data?.message || "Error al asignar turno" });
     }
@@ -89,6 +105,7 @@ const AsignarTurnos = () => {
     setTurnos([]);
     setMensaje(null);
     setConfirmarOtro(false);
+    setDiaFiltro("");  // Resetear el filtro
   };
 
   const irAlDashboard = () => {
@@ -131,6 +148,10 @@ const AsignarTurnos = () => {
           <h2 className="text-lg font-semibold mb-2">
             Turnos disponibles para: {usuarioSeleccionado.firstName} {usuarioSeleccionado.lastName}
           </h2>
+
+          {/* Filtro de días */}
+          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {turnos.map((turno) => (
               <div key={turno._id} className="border p-4 rounded shadow-md">
