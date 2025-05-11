@@ -89,7 +89,7 @@ const Dashboard = () => {
                   {/* Botón para asignar turnos semanales */}
                   <button
                   onClick={() => {
-                    navigate("/asignarTurno");
+                    navigate("/asignarTurSemanal");
                     console.log("Navegando a asignar turno");
                   }}
                   className="w-full bg-teal-500 text-white py-2 px-4 rounded-md hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-400"
