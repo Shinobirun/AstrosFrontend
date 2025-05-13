@@ -1,131 +1,64 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import dayjs from "dayjs";
+import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet";
 
 const UsuariosPage = () => {
   const [usuarios, setUsuarios] = useState([]);
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [turnos, setTurnos] = useState([]);
-  const [creditos, setCreditos] = useState([]);
+  const [creditCounts, setCreditCounts] = useState({});
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchUsuarios = async () => {
+    const fetchUsuariosYCreditos = async () => {
       try {
         const token = localStorage.getItem("token");
-        if (!token) {
-          console.error("No hay token disponible.");
-          return;
-        }
+        if (!token) return console.error("No hay token disponible.");
 
-        const response = await axios.get("http://localhost:5000/api/users/usuarios", {
-          headers: { Authorization: `Bearer ${token}` },
+        // 1) Traer usuarios
+        const resUsers = await axios.get(
+          "http://localhost:5000/api/users/usuarios",
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setUsuarios(resUsers.data);
+
+        // 2) Por cada usuario, traer sus créditos
+        const promCreds = resUsers.data.map((u) =>
+          axios
+            .get(`http://localhost:5000/api/creditos/usuario/${u._id}`, {
+              headers: { Authorization: `Bearer ${token}` },
+            })
+            .then((r) => ({ userId: u._id, count: r.data.length }))
+            .catch(() => ({ userId: u._id, count: 0 }))
+        );
+        const resultados = await Promise.all(promCreds);
+
+        // 3) Agrupar en un objeto { [userId]: count }
+        const counts = {};
+        resultados.forEach(({ userId, count }) => {
+          counts[userId] = count;
         });
-
-        setUsuarios(response.data);
+        setCreditCounts(counts);
       } catch (error) {
-        console.error("Error al obtener los usuarios:", error.response?.data || error.message);
+        console.error("Error al obtener datos:", error.response?.data || error.message);
       }
     };
 
-    fetchUsuarios();
+    fetchUsuariosYCreditos();
   }, []);
 
-  useEffect(() => {
-    const fetchTurnos = async () => {
-      if (!selectedUser) return;
-
-      try {
-        const token = localStorage.getItem("token");
-        if (!token) {
-          console.error("No hay token disponible.");
-          return;
-        }
-
-        const response = await axios.get(`http://localhost:5000/api/users/usuario/${selectedUser._id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        setTurnos(response.data);
-      } catch (error) {
-        console.error("Error al obtener los turnos:", error.response?.data || error.message);
-      }
-    };
-
-    const fetchCreditos = async () => {
-      if (!selectedUser) return;
-
-      try {
-        const token = localStorage.getItem("token");
-        if (!token) {
-          console.error("No hay token disponible.");
-          return;
-        }
-
-        const response = await axios.get(`http://localhost:5000/api/creditos/usuario/${selectedUser._id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        setCreditos(response.data);
-      } catch (error) {
-        console.error("Error al obtener los créditos:", error.response?.data || error.message);
-      }
-    };
-
-    fetchTurnos();
-    fetchCreditos();
-  }, [selectedUser]);
-
-  const liberarTurno = async (turnoId) => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        console.error("No hay token disponible.");
-        return;
-      }
-
-      await axios.put(
-        `http://localhost:5000/api/turnos/liberar`,
-        { turnoId, userId: selectedUser._id },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      setTurnos((prevTurnos) =>
-        prevTurnos.map((turno) =>
-          turno._id === turnoId
-            ? { ...turno, ocupadoPor: turno.ocupadoPor.filter((uid) => uid !== selectedUser._id) }
-            : turno
-        )
-      );
-
-      console.log("Turno liberado correctamente");
-
-      const creditoResponse = await axios.post(
-        `http://localhost:5000/api/creditos`,
-        { usuario: selectedUser._id },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-  
-      console.log("Crédito creado:", creditoResponse.data);
-  
-      // 4. Actualizar créditos en frontend
-      setCreditos((prevCreditos) => [...prevCreditos, creditoResponse.data.credito]);
-  
-    } catch (error) {
-      console.error("Error al liberar el turno:", error.response?.data || error.message);
-    }
+  // Ahora navegamos a rutas separadas:
+  const verTurnosMensuales = (userId) => {
+    navigate(`/turnosMensuales/${userId}`);
+  };
+  const verTurnosSemanales = (userId) => {
+    navigate(`/turnosSemanales/${userId}`);
   };
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
-      {/* METADATOS DE LA PÁGINA */}
       <Helmet>
         <title>Usuarios | Panel de Administración</title>
-        <meta name="description" content="Listado de usuarios registrados, turnos asignados y créditos disponibles." />
+        <meta name="description" content="Listado de usuarios y acceso a sus turnos." />
       </Helmet>
 
       <h2 className="text-2xl font-bold text-center text-gray-800 mb-4">Lista de Usuarios</h2>
@@ -135,20 +68,42 @@ const UsuariosPage = () => {
             {usuarios.map((user, index) => (
               <div
                 key={user._id}
-                className={`cursor-pointer p-3 rounded-md border shadow-sm ${
-                  selectedUser?._id === user._id ? "bg-blue-200 border-blue-500" : "bg-gray-50"
-                }`}
-                onClick={() => setSelectedUser(user)}
+                className="p-3 rounded-md border bg-gray-50 shadow-sm flex flex-col justify-between"
               >
-                <span className="font-semibold">
-                  {index + 1}. {user.firstName} {user.lastName}
-                </span>
-                <p className="text-sm text-gray-600">{user.email}</p>
-                <p className="text-sm font-medium text-gray-800">Nivel: {user.role}</p>
-                <p className="text-sm text-gray-600">Creado: {new Date(user.createdAt).toLocaleDateString()}</p>
-                <p className="text-sm text-gray-600">
-                  Última Modificación: {user.updatedAt ? new Date(user.updatedAt).toLocaleDateString() : "No disponible"}
-                </p>
+                <div>
+                  <span className="font-semibold">
+                    {index + 1}. {user.firstName} {user.lastName}
+                  </span>
+                  <p className="text-sm text-gray-600">{user.email}</p>
+                  <p className="text-sm font-medium text-gray-800">Nivel: {user.role}</p>
+                  <p className="text-sm text-gray-600">
+                    Creado: {new Date(user.createdAt).toLocaleDateString()}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Últ. Modif.:{" "}
+                    {user.updatedAt
+                      ? new Date(user.updatedAt).toLocaleDateString()
+                      : "No disponible"}
+                  </p>
+                  <p className="mt-2 text-sm">
+                    Créditos: <strong>{creditCounts[user._id] || 0}</strong>
+                  </p>
+                </div>
+
+                <div className="mt-4 flex gap-2">
+                  <button
+                    onClick={() => verTurnosMensuales(user._id)}
+                    className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 rounded"
+                  >
+                    Turnos Mensuales
+                  </button>
+                  <button
+                    onClick={() => verTurnosSemanales(user._id)}
+                    className="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 rounded"
+                  >
+                    Turnos Semanales
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -156,57 +111,6 @@ const UsuariosPage = () => {
           <p className="text-center text-gray-600">No hay usuarios registrados.</p>
         )}
       </div>
-
-      {selectedUser && (
-        <>
-          <div className="mt-6 max-w-4xl mx-auto bg-white p-4 shadow-md rounded-lg">
-            <h3 className="text-xl font-semibold text-gray-800">Turnos Asignados</h3>
-            {turnos.length > 0 ? (
-              <ul className="mt-4 space-y-2">
-                {turnos.filter((turno) => turno.activo).map((turno, index) => (
-                  <li key={index} className="p-3 rounded-md border bg-gray-50 shadow-sm">
-                    <p className="font-semibold">
-                      {turno.sede} - {turno.nivel}
-                    </p>
-                    <p className="text-sm text-gray-600">Día: {turno.dia}</p>
-                    <p className="text-sm text-gray-600">Hora: {turno.hora}</p>
-                    <p className="text-sm text-gray-600">Cupos Disponibles: {turno.cuposDisponibles}</p>
-                    <button className="mt-2 text-red-600" onClick={() => liberarTurno(turno._id)}>
-                      Liberar Turno
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-center text-gray-600">No hay turnos activos asignados.</p>
-            )}
-          </div>
-
-          <div className="mt-6 max-w-4xl mx-auto bg-white p-4 shadow-md rounded-lg">
-            <h3 className="text-xl font-semibold text-gray-800">Créditos del Usuario</h3>
-            {creditos.length > 0 ? (
-              <table className="w-full mt-4 border-collapse border border-gray-300">
-                <thead>
-                  <tr className="bg-gray-200">
-                    <th className="border p-2">Crédito</th>
-                    <th className="border p-2">Fecha de Vencimiento</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {creditos.map((credito, index) => (
-                    <tr key={credito._id} className="text-center">
-                      <td className="border p-2">Crédito {index + 1}</td>
-                      <td className="border p-2">{dayjs(credito.venceEn).format("DD/MM/YYYY")}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <p className="text-center text-gray-600">No hay créditos disponibles.</p>
-            )}
-          </div>
-        </>
-      )}
     </div>
   );
 };

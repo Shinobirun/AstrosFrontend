@@ -5,80 +5,64 @@ const TurnosPage = () => {
   const [turnos, setTurnos] = useState([]);
   const [groupedTurnos, setGroupedTurnos] = useState({});
   const [selectedTurnos, setSelectedTurnos] = useState([]);
-  const [filtroDia, setFiltroDia] = useState("Todos"); // Semana completa o día específico
-  const [tipoTurno, setTipoTurno] = useState("Mensuales"); // Nuevo estado: "Mensuales" o "Semanales"
+  const [filtroDia, setFiltroDia] = useState("Todos");
+  const [tipoTurno, setTipoTurno] = useState("Mensuales");
 
   useEffect(() => {
     fetchTurnos();
-  }, [tipoTurno]); // Ahora depende de tipoTurno también
+  }, [tipoTurno]);
 
   const fetchTurnos = async () => {
     try {
       const token = localStorage.getItem("token");
-      console.log("Token usado:", token);
-
-      // Según el tipo de turno, cambio la ruta
       const endpoint =
         tipoTurno === "Mensuales"
           ? "http://localhost:5000/api/turnos/todos"
-          : "	http://localhost:5000/api/turnoRouSema/todoSema";
+          : "http://localhost:5000/api/turnosSemanales/todoSema";
 
-      const response = await axios.get(endpoint, {
+      const { data } = await axios.get(endpoint, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      console.log("Turnos recibidos:", response.data);
-
-      if (Array.isArray(response.data)) {
-        setTurnos(response.data);
-      } else {
-        console.error("La API no devolvió un array:", response.data);
-      }
+      setTurnos(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error al obtener los turnos:", error.response?.data || error.message);
     }
   };
 
   useEffect(() => {
-    if (turnos.length > 0) {
-      groupTurnosByDay(turnos);
-    }
+    if (turnos.length) groupTurnosByDay(turnos);
+    else setGroupedTurnos({});
   }, [turnos]);
 
   const groupTurnosByDay = (turnos) => {
     const days = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
-    let grouped = {};
-
+    const grouped = {};
     days.forEach((day) => {
       grouped[day] = turnos
-        .filter((turno) => turno.dia === day && turno.cuposDisponibles > 0)
+        .filter((t) => t.dia === day && t.cuposDisponibles > 0)
         .sort((a, b) => {
-          const convertToMinutes = (time) => {
-            if (!time) return 0;
-            const [hours, minutes] = time.split(":").map(Number);
-            return hours * 60 + minutes;
+          const toMin = (h) => {
+            const [H, M] = (h || "00:00").split(":").map(Number);
+            return H * 60 + M;
           };
-          return convertToMinutes(a.hora) - convertToMinutes(b.hora);
+          return toMin(a.hora) - toMin(b.hora);
         });
     });
-
-    console.log("Turnos agrupados y ordenados:", grouped);
     setGroupedTurnos(grouped);
   };
 
-  const toggleSelectTurno = (turnoId) => {
-    setSelectedTurnos((prevSelected) =>
-      prevSelected.includes(turnoId)
-        ? prevSelected.filter((id) => id !== turnoId)
-        : [...prevSelected, turnoId]
+  const toggleSelectTurno = (turnoId) =>
+    setSelectedTurnos((prev) =>
+      prev.includes(turnoId) ? prev.filter((id) => id !== turnoId) : [...prev, turnoId]
     );
-  };
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
-      <h2 className="text-2xl font-bold text-center text-gray-800 mb-4">Calendario de Turnos</h2>
+      <h2 className="text-2xl font-bold text-center text-gray-800 mb-4">
+        Calendario de Turnos
+      </h2>
 
-      {/* Selector de tipo de turno */}
       <div className="flex justify-center mb-4 gap-4">
         <select
           className="p-2 border rounded-lg"
@@ -88,92 +72,62 @@ const TurnosPage = () => {
           <option value="Mensuales">Turnos Mensuales</option>
           <option value="Semanales">Turnos Semanales</option>
         </select>
-
-        {/* Filtro de días */}
         <select
           className="p-2 border rounded-lg"
           value={filtroDia}
           onChange={(e) => setFiltroDia(e.target.value)}
         >
           <option value="Todos">Semana Completa</option>
-          {["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"].map((day) => (
-            <option key={day} value={day}>
-              {day}
-            </option>
+          {["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"].map((d) => (
+            <option key={d} value={d}>{d}</option>
           ))}
         </select>
       </div>
 
       <div className="overflow-x-auto max-w-full">
-        <table className="min-w-full bg-white p-4 shadow-md rounded-lg">
+        <table className="min-w-full bg-white shadow rounded-lg">
           <thead>
             <tr className="border-b">
-              {filtroDia === "Todos"
-                ? ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"].map((day) => (
-                    <th key={day} className="text-center py-2 px-4 font-semibold">{day}</th>
-                  ))
-                : [filtroDia].map((day) => (
-                    <th key={day} className="text-center py-2 px-4 font-semibold">{day}</th>
-                  ))}
+              {(filtroDia === "Todos"
+                ? ["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"]
+                : [filtroDia]
+              ).map((day) => (
+                <th key={day} className="text-center py-2 px-4 font-semibold">{day}</th>
+              ))}
             </tr>
           </thead>
           <tbody>
             <tr>
-              {filtroDia === "Todos"
-                ? ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"].map((day) => (
-                    <td key={day} className="py-2 px-4 border-b align-top">
-                      {groupedTurnos[day] && groupedTurnos[day].length > 0 ? (
-                        <ul>
-                          {groupedTurnos[day].map((turno) => (
-                            <li
-                              key={turno._id}
-                              className={`mb-2 p-4 border rounded-lg cursor-pointer ${
-                                selectedTurnos.includes(turno._id)
-                                  ? "bg-blue-200 border-blue-500"
-                                  : "bg-white border-gray-300"
-                              }`}
-                              onClick={() => toggleSelectTurno(turno._id)}
-                            >
-                              <span className="font-semibold">{turno.nivel}</span> - {turno.dia} a las {turno.hora}
-                              - <span className="italic text-blue-600">{turno.sede}</span>
-                              <div className="text-sm text-gray-600">
-                                Cupos disponibles: {turno.cuposDisponibles}
-                              </div>
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <p className="text-gray-500">No hay turnos</p>
-                      )}
-                    </td>
-                  ))
-                : [filtroDia].map((day) => (
-                    <td key={day} className="py-2 px-4 border-b align-top">
-                      {groupedTurnos[day] && groupedTurnos[day].length > 0 ? (
-                        <ul>
-                          {groupedTurnos[day].map((turno) => (
-                            <li
-                              key={turno._id}
-                              className={`mb-2 p-4 border rounded-lg cursor-pointer ${
-                                selectedTurnos.includes(turno._id)
-                                  ? "bg-blue-200 border-blue-500"
-                                  : "bg-white border-gray-300"
-                              }`}
-                              onClick={() => toggleSelectTurno(turno._id)}
-                            >
-                              <span className="font-semibold">{turno.nivel}</span> - {turno.dia} a las {turno.hora}
-                              - <span className="italic text-blue-600">{turno.sede}</span>
-                              <div className="text-sm text-gray-600">
-                                Cupos disponibles: {turno.cuposDisponibles}
-                              </div>
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <p className="text-gray-500">No hay turnos</p>
-                      )}
-                    </td>
-                  ))}
+              {(filtroDia === "Todos"
+                ? ["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"]
+                : [filtroDia]
+              ).map((day) => (
+                <td key={day} className="py-2 px-4 border-b align-top">
+                  {groupedTurnos[day]?.length > 0 ? (
+                    <ul>
+                      {groupedTurnos[day].map((t) => (
+                        <li
+                          key={t._id}
+                          className={`mb-2 p-4 border rounded-lg cursor-pointer ${
+                            selectedTurnos.includes(t._id)
+                              ? "bg-blue-200 border-blue-500"
+                              : "bg-white border-gray-300"
+                          }`}
+                          onClick={() => toggleSelectTurno(t._id)}
+                        >
+                          <span className="font-semibold">{t.nivel}</span> - {t.hora} -{" "}
+                          <span className="italic text-blue-600">{t.sede}</span>
+                          <div className="text-sm text-gray-600">
+                            Cupos: {t.cuposDisponibles}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-gray-500">No hay turnos</p>
+                  )}
+                </td>
+              ))}
             </tr>
           </tbody>
         </table>

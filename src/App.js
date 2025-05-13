@@ -11,6 +11,9 @@ import CrearTurno from "./components/forms/crearTurno.jsx";
 import EliminarTurno from "./components/forms/eliminarTurno.jsx";
 import AsignarTurno from "./components/forms/asignarTurno.jsx";
 import AsignarTurSema from "./components/forms/asignarTurSemanal.jsx";
+import TurnosMensualesPage from "./pages/turnosMensualesPage.jsx";
+import TurnosSemanalesPage from "./pages/turnosSemanalesPage.jsx";
+
 
 // Componente para proteger rutas que requieren autenticación
 const ProtectedRoute = ({ element }) => {
@@ -43,6 +46,9 @@ function App() {
         <Route path="/eliminarTurno" element={<ProtectedRoute element={<EliminarTurno />} />} />
         <Route path="/asignarTurno" element={<ProtectedRoute element={<AsignarTurno />} />} />
         <Route path="/asignarTurSemanal" element={<ProtectedRoute element={<AsignarTurSema />} />} />
+        <Route path="/usuarios" element={<UsuariosPage />} />
+        <Route path="/turnosMensuales/:userId" element={<TurnosMensualesPage />} />
+        <Route path="/turnosSemanales/:userId" element={<TurnosSemanalesPage />} />
       </Routes>
     </Router>
   );
