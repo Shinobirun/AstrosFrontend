@@ -103,6 +103,13 @@ const UsuariosPage = () => {
                   >
                     Turnos Semanales
                   </button>
+                   
+                  <button
+                    onClick={() => navigate(`/editarUsuarios/${user._id}`)}
+                    className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white py-2 rounded"
+                  >
+                    Editar
+                  </button>
                 </div>
               </div>
             ))}

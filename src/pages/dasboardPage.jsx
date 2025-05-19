@@ -70,11 +70,12 @@ const Dashboard = () => {
                     Eliminar Turno
                   </button>
                   <button
-                    onClick={() => navigate("/establecer-feriado")}
-                    className="w-full bg-indigo-500 text-white py-2 px-4 rounded-md hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                    onClick={() => navigate("/crear-credito")}
+                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-400"
                   >
-                    Establecer Feriado
+                    Crear Crédito
                   </button>
+
                   {/* Botón para asignar turnos Mensuales*/}
                   <button
                     onClick={() => {
@@ -111,7 +112,7 @@ const Dashboard = () => {
 
               {/* Editar Usuario - Disponible para todos los usuarios */}
               <button
-                onClick={() => navigate("/editar-usuario")}
+                onClick={() => navigate("/editarUsuarios")}
                 className="w-full bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400"
               >
                 Editar Usuario
