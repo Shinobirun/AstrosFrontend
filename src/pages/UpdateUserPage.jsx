@@ -3,30 +3,35 @@ import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 
 const UpdateUserPage = () => {
-  const { userId } = useParams();               // <-- leemos userId de la ruta
+  const { userId } = useParams();
   const [username, setUsername] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [role, setRole] = useState("");
+  const [activo, setActivo] = useState(true);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState(null);
   const navigate = useNavigate();
 
-  // 1) Carga inicial del usuario a editar
+  // Cargar datos del usuario
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get(
-          `http://localhost:5000/api/users/usuario/${userId}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        const u = res.data;
-        setUsername(u.username);
-        setFirstName(u.firstName);
-        setLastName(u.lastName);
-        setRole(u.role);
+        const res = await axios.get("http://localhost:5000/api/users/usuarios", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const user = res.data.find((u) => u._id === userId);
+        if (!user) {
+          setMessage({ type: "error", text: "Usuario no encontrado." });
+        } else {
+          setUsername(user.username);
+          setFirstName(user.firstName);
+          setLastName(user.lastName);
+          setRole(user.role);
+          setActivo(user.activo);
+        }
       } catch (err) {
         console.error("Error al cargar usuario:", err);
         setMessage({ type: "error", text: "No se pudo cargar el usuario." });
@@ -37,7 +42,7 @@ const UpdateUserPage = () => {
     fetchUser();
   }, [userId]);
 
-  // 2) Envío del formulario
+  // Enviar formulario
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
@@ -48,17 +53,18 @@ const UpdateUserPage = () => {
       await axios.put(
         "http://localhost:5000/api/users/profile",
         {
-          id: userId,         // <-- id del usuario a actualizar
+          id: userId,
           username,
-          firstName,
-          lastName,
+          first_name: firstName,
+          last_name: lastName,
           role,
+          activo, // enviamos el estado activo actualizado
         },
-        { headers: { Authorization: `Bearer ${token}` } }
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
       );
       setMessage({ type: "success", text: "Usuario actualizado correctamente." });
-      // Si querés volver automáticamente:
-      // navigate("/usuarios");
     } catch (err) {
       console.error("Error al actualizar:", err);
       setMessage({
@@ -89,7 +95,6 @@ const UpdateUserPage = () => {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Username */}
         <div>
           <label className="block text-sm font-medium mb-1">Usuario</label>
           <input
@@ -101,7 +106,6 @@ const UpdateUserPage = () => {
           />
         </div>
 
-        {/* First Name */}
         <div>
           <label className="block text-sm font-medium mb-1">Nombre</label>
           <input
@@ -113,7 +117,6 @@ const UpdateUserPage = () => {
           />
         </div>
 
-        {/* Last Name */}
         <div>
           <label className="block text-sm font-medium mb-1">Apellido</label>
           <input
@@ -125,7 +128,6 @@ const UpdateUserPage = () => {
           />
         </div>
 
-        {/* Role */}
         <div>
           <label className="block text-sm font-medium mb-1">Rol</label>
           <select
@@ -141,7 +143,19 @@ const UpdateUserPage = () => {
           </select>
         </div>
 
-        {/* Botones */}
+        {/* Checkbox para activar/desactivar usuario */}
+        <div>
+          <label className="inline-flex items-center space-x-2">
+            <input
+              type="checkbox"
+              checked={activo}
+              onChange={(e) => setActivo(e.target.checked)}
+              className="form-checkbox h-5 w-5 text-blue-600"
+            />
+            <span>Activo</span>
+          </label>
+        </div>
+
         <div className="flex justify-between">
           <button
             type="button"
@@ -166,3 +180,4 @@ const UpdateUserPage = () => {
 };
 
 export default UpdateUserPage;
+
