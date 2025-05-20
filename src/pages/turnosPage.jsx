@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const TurnosPage = () => {
   const [turnos, setTurnos] = useState([]);
@@ -7,6 +8,7 @@ const TurnosPage = () => {
   const [selectedTurnos, setSelectedTurnos] = useState([]);
   const [filtroDia, setFiltroDia] = useState("Todos");
   const [tipoTurno, setTipoTurno] = useState("Mensuales");
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchTurnos();
@@ -59,10 +61,16 @@ const TurnosPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
+      {/* Logo */}
+      <div className="flex justify-center mb-6">
+        <img src="/Astros.png" alt="Astros Logo" className="h-16 w-auto" />
+      </div>
+
       <h2 className="text-2xl font-bold text-center text-gray-800 mb-4">
         Calendario de Turnos
       </h2>
 
+      {/* Selectores */}
       <div className="flex justify-center mb-4 gap-4">
         <select
           className="p-2 border rounded-lg"
@@ -84,6 +92,7 @@ const TurnosPage = () => {
         </select>
       </div>
 
+      {/* Tabla */}
       <div className="overflow-x-auto max-w-full">
         <table className="min-w-full bg-white shadow rounded-lg">
           <thead>
@@ -92,7 +101,9 @@ const TurnosPage = () => {
                 ? ["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"]
                 : [filtroDia]
               ).map((day) => (
-                <th key={day} className="text-center py-2 px-4 font-semibold">{day}</th>
+                <th key={day} className="text-center py-2 px-4 font-semibold">
+                  {day}
+                </th>
               ))}
             </tr>
           </thead>
@@ -131,6 +142,16 @@ const TurnosPage = () => {
             </tr>
           </tbody>
         </table>
+      </div>
+
+      {/* Botón para volver */}
+      <div className="mt-6 text-center">
+        <button
+          onClick={() => navigate("/dashboard")}
+          className="text-sm text-blue-600 hover:underline"
+        >
+          ← Volver al Dashboard
+        </button>
       </div>
     </div>
   );

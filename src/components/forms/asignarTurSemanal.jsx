@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const AsignarTurnos = () => {
   const [usuarios, setUsuarios] = useState([]);
@@ -8,7 +9,9 @@ const AsignarTurnos = () => {
   const [mensaje, setMensaje] = useState(null);
   const [cargandoTurno, setCargandoTurno] = useState(null);
   const [confirmarOtro, setConfirmarOtro] = useState(false);
+  
 
+  const navigate = useNavigate();
   const token = localStorage.getItem("token");
   const headers = { Authorization: `Bearer ${token}` };
 
@@ -91,8 +94,17 @@ const AsignarTurnos = () => {
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Asignar Turno</h1>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
+      <div className="w-full max-w-3xl bg-white rounded-lg shadow-md p-6">
+        {/* Logo */}
+        <div className="flex justify-center mb-6">
+          <img src="/Astros.png" alt="Astros" className="h-24" />
+        </div>
+
+
+
+    
+      <h1 className="text-2xl font-bold mb-4 text-center">Asignar Turno Semanal</h1>
 
       {mensaje && (
         <div className={`p-2 mb-4 rounded ${mensaje.tipo === "exito" ? "bg-green-200" : "bg-red-200"}`}>
@@ -102,10 +114,10 @@ const AsignarTurnos = () => {
 
       {!usuarioSeleccionado && (
         <div className="mb-4">
-          <h2 className="text-lg font-semibold mb-2">Seleccioná un usuario:</h2>
+          <h2 className="text-lg font-semibold mb-2 text-center">Seleccioná un usuario:</h2>
           <ul className="space-y-2">
             {usuarios.map((user) => (
-              <li key={user._id}>
+              <li key={user._id} className="flex justify-center">
                 <button
                   onClick={() => {
                     setUsuarioSeleccionado(user);
@@ -118,12 +130,18 @@ const AsignarTurnos = () => {
               </li>
             ))}
           </ul>
+          <button
+              onClick={() => navigate("/dashboard")}
+              className="mb-4 text-blue-600 hover:underline"
+            >
+              ← Dashboard
+            </button>
         </div>
       )}
 
       {usuarioSeleccionado && !confirmarOtro && (
         <>
-          <h2 className="text-lg font-semibold mb-2">
+          <h2 className="text-lg font-semibold mb-4 text-center">
             Turnos disponibles para: {usuarioSeleccionado.firstName} {usuarioSeleccionado.lastName}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -137,6 +155,7 @@ const AsignarTurnos = () => {
                 <button
                   onClick={() => asignarTurno(turno._id)}
                   disabled={cargandoTurno === turno._id}
+                  
                   className="mt-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:bg-gray-400"
                 >
                   {cargandoTurno === turno._id ? "Asignando..." : "Asignar Turno"}
@@ -144,6 +163,12 @@ const AsignarTurnos = () => {
               </div>
             ))}
           </div>
+           <button
+              onClick={() => navigate("/dashboard")}
+              className="mb-4 text-blue-600 hover:underline"
+            >
+              ← Dashboard
+            </button>
         </>
       )}
 
@@ -164,6 +189,8 @@ const AsignarTurnos = () => {
           </button>
         </div>
       )}
+    
+    </div>
     </div>
   );
 };

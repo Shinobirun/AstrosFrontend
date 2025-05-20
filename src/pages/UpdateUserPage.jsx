@@ -4,25 +4,29 @@ import { useNavigate, useParams } from "react-router-dom";
 
 const UpdateUserPage = () => {
   const { userId } = useParams();
+  const navigate = useNavigate();
+
   const [username, setUsername] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [role, setRole] = useState("");
+  const [password, setPassword] = useState("");           // <-- nuevo estado
   const [activo, setActivo] = useState(true);
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState(null);
-  const navigate = useNavigate();
 
-  // Cargar datos del usuario
+  // 1) Cargar usuario
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get("http://localhost:5000/api/users/usuarios", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const user = res.data.find((u) => u._id === userId);
+        const { data: users } = await axios.get(
+          "http://localhost:5000/api/users/usuarios",
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        const user = users.find((u) => u._id === userId);
         if (!user) {
           setMessage({ type: "error", text: "Usuario no encontrado." });
         } else {
@@ -33,8 +37,8 @@ const UpdateUserPage = () => {
           setActivo(user.activo);
         }
       } catch (err) {
-        console.error("Error al cargar usuario:", err);
-        setMessage({ type: "error", text: "No se pudo cargar el usuario." });
+        console.error(err);
+        setMessage({ type: "error", text: "Error al cargar usuario." });
       } finally {
         setLoading(false);
       }
@@ -42,7 +46,7 @@ const UpdateUserPage = () => {
     fetchUser();
   }, [userId]);
 
-  // Enviar formulario
+  // 2) Guardar cambios generales (incluye contraseña si se ingresó)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
@@ -50,27 +54,50 @@ const UpdateUserPage = () => {
 
     try {
       const token = localStorage.getItem("token");
+      // Armamos el body dinámicamente: solo incluimos password si no está vacío
+      const body = {
+        id: userId,
+        username,
+        first_name: firstName,
+        last_name: lastName,
+        role,
+        activo,
+      };
+      if (password.trim()) {
+        body.password = password.trim();
+      }
+
       await axios.put(
         "http://localhost:5000/api/users/profile",
-        {
-          id: userId,
-          username,
-          first_name: firstName,
-          last_name: lastName,
-          role,
-          activo, // enviamos el estado activo actualizado
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        body,
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       setMessage({ type: "success", text: "Usuario actualizado correctamente." });
+      setPassword(""); // limpiamos el input de contraseña
     } catch (err) {
-      console.error("Error al actualizar:", err);
-      setMessage({
-        type: "error",
-        text: err.response?.data?.message || "Error al actualizar usuario.",
-      });
+      console.error(err);
+      setMessage({ type: "error", text: "Error al actualizar usuario." });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // 3) Toggle Activo/Inactivo
+  const handleToggleActivo = async () => {
+    setSaving(true);
+    setMessage(null);
+    try {
+      const token = localStorage.getItem("token");
+      const { data } = await axios.put(
+        "http://localhost:5000/api/users/deactivate",
+        { userId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setActivo(data.activo);
+      setMessage({ type: "success", text: data.message });
+    } catch (err) {
+      console.error(err);
+      setMessage({ type: "error", text: "No se pudo cambiar el estado." });
     } finally {
       setSaving(false);
     }
@@ -95,79 +122,80 @@ const UpdateUserPage = () => {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Usuario */}
         <div>
-          <label className="block text-sm font-medium mb-1">Usuario</label>
+          <label className="block text-sm mb-1">Usuario</label>
           <input
-            type="text"
+            className="w-full border px-3 py-2 rounded"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            className="w-full border px-3 py-2 rounded focus:outline-none focus:ring focus:border-blue-300"
             required
           />
         </div>
 
+        {/* Nombre */}
         <div>
-          <label className="block text-sm font-medium mb-1">Nombre</label>
+          <label className="block text-sm mb-1">Nombre</label>
           <input
-            type="text"
+            className="w-full border px-3 py-2 rounded"
             value={firstName}
             onChange={(e) => setFirstName(e.target.value)}
-            className="w-full border px-3 py-2 rounded focus:outline-none focus:ring focus:border-blue-300"
             required
           />
         </div>
 
+        {/* Apellido */}
         <div>
-          <label className="block text-sm font-medium mb-1">Apellido</label>
+          <label className="block text-sm mb-1">Apellido</label>
           <input
-            type="text"
+            className="w-full border px-3 py-2 rounded"
             value={lastName}
             onChange={(e) => setLastName(e.target.value)}
-            className="w-full border px-3 py-2 rounded focus:outline-none focus:ring focus:border-blue-300"
             required
           />
         </div>
 
+        {/* Rol */}
         <div>
-          <label className="block text-sm font-medium mb-1">Rol</label>
+          <label className="block text-sm mb-1">Rol</label>
           <select
+            className="w-full border px-3 py-2 rounded"
             value={role}
             onChange={(e) => setRole(e.target.value)}
-            className="w-full border px-3 py-2 rounded focus:outline-none focus:ring focus:border-blue-300"
           >
-            <option value="Admin">Admin</option>
-            <option value="Profesor">Profesor</option>
-            <option value="Violeta">Violeta</option>
-            <option value="Azul">Azul</option>
-            <option value="Blanco">Blanco</option>
+            <option>Admin</option>
+            <option>Profesor</option>
+            <option>Violeta</option>
+            <option>Azul</option>
+            <option>Blanco</option>
           </select>
         </div>
 
-        {/* Checkbox para activar/desactivar usuario */}
+        {/* Contraseña nueva (opcional) */}
         <div>
-          <label className="inline-flex items-center space-x-2">
-            <input
-              type="checkbox"
-              checked={activo}
-              onChange={(e) => setActivo(e.target.checked)}
-              className="form-checkbox h-5 w-5 text-blue-600"
-            />
-            <span>Activo</span>
-          </label>
+          <label className="block text-sm mb-1">Nueva contraseña</label>
+          <input
+            type="password"
+            className="w-full border px-3 py-2 rounded"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Dejar en blanco para no cambiar"
+          />
         </div>
 
+        {/* Botones Guardar/Cancelar */}
         <div className="flex justify-between">
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="px-4 py-2 rounded border text-gray-700 hover:bg-gray-100"
+            className="px-4 py-2 border rounded hover:bg-gray-100"
           >
             Cancelar
           </button>
           <button
             type="submit"
             disabled={saving}
-            className={`px-4 py-2 rounded text-white ${
+            className={`px-4 py-2 text-white rounded ${
               saving ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"
             }`}
           >
@@ -175,9 +203,38 @@ const UpdateUserPage = () => {
           </button>
         </div>
       </form>
+
+      {/* Toggle Activo/Inactivo */}
+      <div className="mt-6">
+        <label className="inline-flex items-center space-x-2">
+          <input
+            type="checkbox"
+            checked={activo}
+            readOnly
+            className="form-checkbox h-5 w-5 text-blue-600"
+          />
+          <span>{activo ? "Usuario Activo" : "Usuario Inactivo"}</span>
+        </label>
+        <button
+          onClick={handleToggleActivo}
+          disabled={saving}
+          className={`ml-4 px-4 py-2 text-white rounded ${
+            saving
+              ? "bg-gray-400"
+              : activo
+              ? "bg-red-600 hover:bg-red-700"
+              : "bg-green-600 hover:bg-green-700"
+          }`}
+        >
+          {saving
+            ? "Procesando…"
+            : activo
+            ? "Desactivar Usuario"
+            : "Reactivar Usuario"}
+        </button>
+      </div>
     </div>
   );
 };
 
 export default UpdateUserPage;
-

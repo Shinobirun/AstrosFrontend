@@ -10,31 +10,28 @@ export default function TurnosList() {
   const navigate = useNavigate();
 
   const diasSemana = {
-    "Lunes": 1,
-    "Martes": 2,
-    "Miércoles": 3,
-    "Jueves": 4,
-    "Viernes": 5,
-    "Sábado": 6,
-    "Domingo": 7
+    Lunes: 1,
+    Martes: 2,
+    Miércoles: 3,
+    Jueves: 4,
+    Viernes: 5,
+    Sábado: 6,
+    Domingo: 7,
   };
 
   const cargarTurnos = () => {
     const token = localStorage.getItem("token");
-    axios.get("http://localhost:5000/api/turnos/todos", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
+    axios
+      .get("http://localhost:5000/api/turnos/todos", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
       .then((response) => {
-        const turnosOrdenados = response.data.sort((a, b) => {
+        const ordenados = response.data.sort((a, b) => {
           const diaA = diasSemana[a.dia] || 8;
           const diaB = diasSemana[b.dia] || 8;
-          const horaA = a.hora;
-          const horaB = b.hora;
-          return diaA - diaB || horaA.localeCompare(horaB);
+          return diaA - diaB || a.hora.localeCompare(b.hora);
         });
-        setTurnos(turnosOrdenados);
+        setTurnos(ordenados);
       })
       .catch((error) =>
         console.error("Error cargando turnos:", error.response?.data || error.message)
@@ -47,20 +44,12 @@ export default function TurnosList() {
 
   const eliminarTurno = async () => {
     if (!turnoSeleccionado) return;
-
     try {
       const token = localStorage.getItem("token");
-      if (!token) {
-        console.error("No hay token disponible");
-        return;
-      }
-
-      await axios.delete(`http://localhost:5000/api/turnos/${turnoSeleccionado._id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
+      await axios.delete(
+        `http://localhost:5000/api/turnos/${turnoSeleccionado._id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       setDialogOpen(false);
       cargarTurnos();
     } catch (error) {
@@ -68,12 +57,16 @@ export default function TurnosList() {
     }
   };
 
-  const turnosFiltrados = filtroDia === "Todos"
-    ? turnos
-    : turnos.filter(turno => turno.dia === filtroDia);
+  const turnosFiltrados =
+    filtroDia === "Todos" ? turnos : turnos.filter((t) => t.dia === filtroDia);
 
   return (
-    <div className="p-6">
+    <div className="p-6 bg-gray-100 min-h-screen">
+      {/* Logo */}
+      <div className="flex justify-center mb-6">
+        <img src="/Astros.png" alt="Astros Logo" className="h-16 w-auto" />
+      </div>
+
       <div className="max-w-3xl mx-auto bg-white shadow-md rounded-lg p-4">
         <h2 className="text-xl font-bold mb-4 text-center">Lista de Turnos</h2>
 
@@ -87,7 +80,9 @@ export default function TurnosList() {
           >
             <option value="Todos">Todos</option>
             {Object.keys(diasSemana).map((dia) => (
-              <option key={dia} value={dia}>{dia}</option>
+              <option key={dia} value={dia}>
+                {dia}
+              </option>
             ))}
           </select>
         </div>
@@ -120,6 +115,13 @@ export default function TurnosList() {
                 </td>
               </tr>
             ))}
+            {turnosFiltrados.length === 0 && (
+              <tr>
+                <td colSpan={4} className="p-4 text-center text-gray-500">
+                  No hay turnos para mostrar.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -129,9 +131,9 @@ export default function TurnosList() {
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-80">
             <h3 className="text-lg font-semibold text-center">¿Eliminar este turno?</h3>
-            <p className="text-center text-gray-600">Día: {turnoSeleccionado?.dia}</p>
-            <p className="text-center text-gray-600">Sede: {turnoSeleccionado?.sede}</p>
-            <p className="text-center text-gray-600">Hora: {turnoSeleccionado?.hora}</p>
+            <p className="text-center text-gray-600">Día: {turnoSeleccionado.dia}</p>
+            <p className="text-center text-gray-600">Sede: {turnoSeleccionado.sede}</p>
+            <p className="text-center text-gray-600">Hora: {turnoSeleccionado.hora}</p>
             <div className="flex justify-center gap-4 mt-4">
               <button
                 className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500"
@@ -149,6 +151,16 @@ export default function TurnosList() {
           </div>
         </div>
       )}
+
+      {/* Volver al Dashboard */}
+      <div className="mt-6 text-center">
+        <button
+          onClick={() => navigate("/dashboard")}
+          className="text-sm text-blue-600 hover:underline"
+        >
+          ← Volver al Dashboard
+        </button>
+      </div>
     </div>
   );
 }

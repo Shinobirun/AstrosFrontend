@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const AsignarTurnos = () => {
   const [usuarios, setUsuarios] = useState([]);
@@ -10,6 +11,7 @@ const AsignarTurnos = () => {
   const [confirmarOtro, setConfirmarOtro] = useState(false);
   const [diaFiltro, setDiaFiltro] = useState("");
 
+  const navigate = useNavigate();
   const token = localStorage.getItem("token");
   const headers = { Authorization: `Bearer ${token}` };
 
@@ -19,7 +21,6 @@ const AsignarTurnos = () => {
   }, []);
 
   const obtenerUsuarios = async () => {
-    console.log("Obteniendo usuarios...");
     try {
       const res = await axios.get("http://localhost:5000/api/users/usuarios", { headers });
       setUsuarios(res.data);
@@ -28,26 +29,19 @@ const AsignarTurnos = () => {
     }
   };
 
-  const obtenerTurnosDisponibles = async (diaFiltro = "") => {
+  const obtenerTurnosDisponibles = async (dia = "") => {
     try {
-      const url = diaFiltro
-        ? `http://localhost:5000/api/turnos/todos?dia=${encodeURIComponent(diaFiltro)}`
+      const url = dia
+        ? `http://localhost:5000/api/turnos/todos?dia=${encodeURIComponent(dia)}`
         : "http://localhost:5000/api/turnos/todos";
-
       const res = await axios.get(url, { headers });
-      
-      // Ordenar los turnos por día y hora
-      const turnosOrdenados = res.data.sort((a, b) => {
-        const dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
-        const diaA = dias.indexOf(a.dia);
-        const diaB = dias.indexOf(b.dia);
-        if (diaA === diaB) {
-          return a.hora.localeCompare(b.hora);
-        }
-        return diaA - diaB;
+      const dias = ["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"];
+      const ordenados = res.data.sort((a, b) => {
+        const i = dias.indexOf(a.dia), j = dias.indexOf(b.dia);
+        if (i === j) return a.hora.localeCompare(b.hora);
+        return i - j;
       });
-
-      setTurnos(turnosOrdenados);
+      setTurnos(ordenados);
     } catch (err) {
       console.error("Error al obtener turnos", err);
     }
@@ -55,24 +49,23 @@ const AsignarTurnos = () => {
 
   const obtenerCreditosUsuario = async (usuarioId) => {
     try {
-      const res = await axios.get(`http://localhost:5000/api/creditos/usuario/${usuarioId}`, { headers });
-      return res.data; // Suponiendo que la respuesta es un arreglo de créditos
-    } catch (error) {
-      console.error("Error al obtener créditos", error);
+      const res = await axios.get(
+        `http://localhost:5000/api/creditos/usuario/${usuarioId}`,
+        { headers }
+      );
+      return res.data;
+    } catch {
       return [];
     }
   };
 
   const eliminarCreditoMasAntiguo = async (usuarioId) => {
-    try {
-      const creditos = await obtenerCreditosUsuario(usuarioId);
-      if (creditos.length > 0) {
-        const creditoMasAntiguo = creditos[0];
-        await axios.delete(`http://localhost:5000/api/creditos/${creditoMasAntiguo._id}`, { headers });
-        console.log("Crédito eliminado", creditoMasAntiguo._id);
-      }
-    } catch (error) {
-      console.error("Error al eliminar crédito", error);
+    const creditos = await obtenerCreditosUsuario(usuarioId);
+    if (creditos.length) {
+      await axios.delete(
+        `http://localhost:5000/api/creditos/${creditos[0]._id}`,
+        { headers }
+      );
     }
   };
 
@@ -81,23 +74,21 @@ const AsignarTurnos = () => {
     try {
       const res = await axios.post(
         "http://localhost:5000/api/turnos/asignar",
-        {
-          turnoId,
-          userId: usuarioSeleccionado._id,
-        },
+        { turnoId, userId: usuarioSeleccionado._id },
         { headers }
       );
       setMensaje({ tipo: "exito", texto: res.data.message });
-
-      // Llamar a la función para eliminar el crédito más antiguo
       await eliminarCreditoMasAntiguo(usuarioSeleccionado._id);
-
       setConfirmarOtro(true);
-      obtenerTurnosDisponibles(diaFiltro);  // Refrescar los turnos según el filtro aplicado
+      obtenerTurnosDisponibles(diaFiltro);
     } catch (error) {
-      setMensaje({ tipo: "error", texto: error.response?.data?.message || "Error al asignar turno" });
+      setMensaje({
+        tipo: "error",
+        texto: error.response?.data?.message || "Error al asignar turno",
+      });
+    } finally {
+      setCargandoTurno(null);
     }
-    setCargandoTurno(null);
   };
 
   const resetear = () => {
@@ -105,91 +96,120 @@ const AsignarTurnos = () => {
     setTurnos([]);
     setMensaje(null);
     setConfirmarOtro(false);
-    setDiaFiltro("");  // Resetear el filtro
-  };
-
-  const irAlDashboard = () => {
-    window.location.href = "/dashboard";
+    setDiaFiltro("");
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Asignar Turno</h1>
-
-      {mensaje && (
-        <div className={`p-2 mb-4 rounded ${mensaje.tipo === "exito" ? "bg-green-200" : "bg-red-200"}`}>
-          {mensaje.texto}
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
+      <div className="w-full max-w-3xl bg-white rounded-lg shadow-md p-6">
+        {/* Logo */}
+        <div className="flex justify-center mb-6">
+          <img src="/Astros.png" alt="Astros" className="h-24" />
         </div>
-      )}
 
-      {!usuarioSeleccionado && (
-        <div className="mb-4">
-          <h2 className="text-lg font-semibold mb-2">Seleccioná un usuario:</h2>
-          <ul className="space-y-2">
-            {usuarios.map((user) => (
-              <li key={user._id}>
-                <button
-                  onClick={() => {
-                    setUsuarioSeleccionado(user);
-                    obtenerTurnosDisponibles();
-                  }}
-                  className="bg-blue-500 hover:bg-blue-700 text-white px-4 py-2 rounded"
-                >
-                  {user.firstName} {user.lastName} ({user.username})
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+        
 
-      {usuarioSeleccionado && !confirmarOtro && (
-        <>
-          <h2 className="text-lg font-semibold mb-2">
-            Turnos disponibles para: {usuarioSeleccionado.firstName} {usuarioSeleccionado.lastName}
-          </h2>
+        <h1 className="text-2xl font-bold mb-4 text-center">Asignar Turno Mensual</h1>
 
-          {/* Filtro de días */}
-          
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {turnos.map((turno) => (
-              <div key={turno._id} className="border p-4 rounded shadow-md">
-                <p><strong>Sede:</strong> {turno.sede}</p>
-                <p><strong>Nivel:</strong> {turno.nivel}</p>
-                <p><strong>Día:</strong> {turno.dia}</p>
-                <p><strong>Hora:</strong> {turno.hora}</p>
-                <p><strong>Cupos disponibles:</strong> {turno.cuposDisponibles - turno.ocupadoPor.length}</p>
-                <button
-                  onClick={() => asignarTurno(turno._id)}
-                  disabled={cargandoTurno === turno._id}
-                  className="mt-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:bg-gray-400"
-                >
-                  {cargandoTurno === turno._id ? "Asignando..." : "Asignar Turno"}
-                </button>
-              </div>
-            ))}
+        {mensaje && (
+          <div
+            className={`p-2 mb-4 rounded ${
+              mensaje.tipo === "exito" ? "bg-green-200" : "bg-red-200"
+            }`}
+          >
+            {mensaje.texto}
           </div>
-        </>
-      )}
+        )}
 
-      {confirmarOtro && (
-        <div className="mt-6">
-          <p className="mb-4">¿Querés asignar otro turno?</p>
-          <button
-            onClick={resetear}
-            className="mr-4 bg-green-500 hover:bg-green-700 text-white px-4 py-2 rounded"
-          >
-            Sí, asignar otro
-          </button>
-          <button
-            onClick={irAlDashboard}
-            className="bg-gray-500 hover:bg-gray-700 text-white px-4 py-2 rounded"
-          >
-            No, volver al Dashboard
-          </button>
-        </div>
-      )}
+        {!usuarioSeleccionado && (
+          <div className="mb-6">
+            <h2 className="text-lg font-semibold mb-2 text-center">
+              Seleccioná un usuario:
+            </h2>
+            <ul className="space-y-2">
+              {usuarios.map((user) => (
+                <li key={user._id} className="flex justify-center">
+                  <button
+                    onClick={() => {
+                      setUsuarioSeleccionado(user);
+                      obtenerTurnosDisponibles();
+                    }}
+                    className="w-64 bg-blue-500 hover:bg-blue-700 text-white px-4 py-2 rounded"
+                  >
+                    {user.firstName} {user.lastName} ({user.username})
+                  </button>
+                </li>
+                
+              ))}
+            </ul>
+            <button
+              onClick={() => navigate("/dashboard")}
+              className="mb-4 text-blue-600 hover:underline"
+            >
+              ← Dashboard
+            </button>
+          </div>
+        )}
+
+        {usuarioSeleccionado && !confirmarOtro && (
+          <>
+            <h2 className="text-lg font-semibold mb-4 text-center">
+              Turnos disponibles para:<br/>
+              <span className="font-bold">
+                {usuarioSeleccionado.firstName} {usuarioSeleccionado.lastName}
+              </span>
+            </h2>
+            {/* Botón Dashboard */}
+        
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {turnos.map((turno) => (
+                <div
+                  key={turno._id}
+                  className="border p-4 rounded shadow-md bg-white flex flex-col justify-between"
+                >
+                  <div>
+                    <p><strong>Sede:</strong> {turno.sede}</p>
+                    <p><strong>Nivel:</strong> {turno.nivel}</p>
+                    <p><strong>Día:</strong> {turno.dia}</p>
+                    <p><strong>Hora:</strong> {turno.hora}</p>
+                    <p>
+                      <strong>Cupos disp.:</strong>{" "}
+                      {turno.cuposDisponibles - turno.ocupadoPor.length}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => asignarTurno(turno._id)}
+                    disabled={cargandoTurno === turno._id}
+                    className="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 rounded disabled:bg-gray-400"
+                  >
+                    {cargandoTurno === turno._id
+                      ? "Asignando..."
+                      : "Asignar Turno"}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {confirmarOtro && (
+          <div className="mt-6 text-center">
+            <p className="mb-4">¿Querés asignar otro turno?</p>
+            <button
+              onClick={resetear}
+              className="mr-4 bg-green-500 hover:bg-green-700 text-white px-4 py-2 rounded"
+            >
+              Sí, asignar otro
+            </button>
+            <button
+              onClick={() => navigate("/dashboard")}
+              className="bg-gray-500 hover:bg-gray-700 text-white px-4 py-2 rounded"
+            >
+              No, volver al Dashboard
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

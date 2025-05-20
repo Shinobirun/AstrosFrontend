@@ -19,12 +19,10 @@ const TurnosMensualesPage = () => {
       }
 
       try {
-        // 1) Perfil
         const perfilReq = axios.get(
           `http://localhost:5000/api/users/usuario/${userId}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        // 2) Turnos mensuales
         const turnosReq = axios.get(
           `http://localhost:5000/api/users/turnosMensuales/${userId}`,
           { headers: { Authorization: `Bearer ${token}` } }
@@ -51,7 +49,6 @@ const TurnosMensualesPage = () => {
         { turnoId, userId, tipo: "mensual" },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      // Eliminamos el turno liberado del estado
       setTurnos((prev) => prev.filter((t) => t._id !== turnoId));
     } catch (err) {
       console.error("Error al liberar:", err.response?.data || err.message);
@@ -63,12 +60,28 @@ const TurnosMensualesPage = () => {
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
-      <button
-        onClick={() => navigate(-1)}
-        className="mb-4 text-blue-600 hover:underline"
-      >
-        ← Volver
-      </button>
+      {/* Logo */}
+      <div className="flex justify-center mb-6">
+        <img src="/Astros.png" alt="Astros logo" className="h-20" />
+      </div>
+
+      {/* Botón volver al dashboard */}
+      <div className="mb-4">
+        <button
+          onClick={() => navigate("/dashboard")}
+          className="text-blue-600 hover:underline mr-4"
+        >
+          ← Volver al Dashboard
+        </button>
+
+        {/* Botón retroceder (opcional, lo podés sacar si no lo usás) */}
+        <button
+          onClick={() => navigate(-1)}
+          className="text-blue-600 hover:underline"
+        >
+          ← Volver
+        </button>
+      </div>
 
       <h2 className="text-2xl font-bold mb-4">
         Turnos Mensuales de {usuario.firstName} {usuario.lastName}

@@ -14,15 +14,13 @@ const UsuariosPage = () => {
         const token = localStorage.getItem("token");
         if (!token) return console.error("No hay token disponible.");
 
-        // 1) Traer usuarios
-        const resUsers = await axios.get(
+        const { data: resUsers } = await axios.get(
           "http://localhost:5000/api/users/usuarios",
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        setUsuarios(resUsers.data);
+        setUsuarios(resUsers);
 
-        // 2) Por cada usuario, traer sus créditos
-        const promCreds = resUsers.data.map((u) =>
+        const promCreds = resUsers.map((u) =>
           axios
             .get(`http://localhost:5000/api/creditos/usuario/${u._id}`, {
               headers: { Authorization: `Bearer ${token}` },
@@ -31,12 +29,8 @@ const UsuariosPage = () => {
             .catch(() => ({ userId: u._id, count: 0 }))
         );
         const resultados = await Promise.all(promCreds);
-
-        // 3) Agrupar en un objeto { [userId]: count }
         const counts = {};
-        resultados.forEach(({ userId, count }) => {
-          counts[userId] = count;
-        });
+        resultados.forEach(({ userId, count }) => (counts[userId] = count));
         setCreditCounts(counts);
       } catch (error) {
         console.error("Error al obtener datos:", error.response?.data || error.message);
@@ -46,13 +40,8 @@ const UsuariosPage = () => {
     fetchUsuariosYCreditos();
   }, []);
 
-  // Ahora navegamos a rutas separadas:
-  const verTurnosMensuales = (userId) => {
-    navigate(`/turnosMensuales/${userId}`);
-  };
-  const verTurnosSemanales = (userId) => {
-    navigate(`/turnosSemanales/${userId}`);
-  };
+  const verTurnosMensuales = (userId) => navigate(`/turnosMensuales/${userId}`);
+  const verTurnosSemanales = (userId) => navigate(`/turnosSemanales/${userId}`);
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
@@ -61,7 +50,15 @@ const UsuariosPage = () => {
         <meta name="description" content="Listado de usuarios y acceso a sus turnos." />
       </Helmet>
 
-      <h2 className="text-2xl font-bold text-center text-gray-800 mb-4">Lista de Usuarios</h2>
+      {/* Logo */}
+      <div className="flex justify-center mb-4">
+        <img src="/Astros.png" alt="Astros Logo" className="h-16 w-auto" />
+      </div>
+
+      <h2 className="text-2xl font-bold text-center text-gray-800 mb-4">
+        Lista de Usuarios
+      </h2>
+
       <div className="max-w-4xl mx-auto bg-white p-4 shadow-md rounded-lg">
         {usuarios.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -93,20 +90,19 @@ const UsuariosPage = () => {
                 <div className="mt-4 flex gap-2">
                   <button
                     onClick={() => verTurnosMensuales(user._id)}
-                    className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 rounded"
+                    className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
                   >
                     Turnos Mensuales
                   </button>
                   <button
                     onClick={() => verTurnosSemanales(user._id)}
-                    className="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 rounded"
+                    className="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 rounded focus:outline-none focus:ring-2 focus:ring-green-300"
                   >
                     Turnos Semanales
                   </button>
-                   
                   <button
                     onClick={() => navigate(`/editarUsuarios/${user._id}`)}
-                    className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white py-2 rounded"
+                    className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white py-2 rounded focus:outline-none focus:ring-2 focus:ring-yellow-300"
                   >
                     Editar
                   </button>
@@ -117,6 +113,16 @@ const UsuariosPage = () => {
         ) : (
           <p className="text-center text-gray-600">No hay usuarios registrados.</p>
         )}
+      </div>
+
+      {/* Volver al Dashboard */}
+      <div className="mt-6 text-center">
+        <button
+          onClick={() => navigate("/dashboard")}
+          className="text-sm text-blue-600 hover:underline"
+        >
+          ← Volver al Dashboard
+        </button>
       </div>
     </div>
   );

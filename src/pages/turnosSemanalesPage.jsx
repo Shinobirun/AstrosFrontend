@@ -41,7 +41,7 @@ const TurnosSemanalesPage = () => {
     try {
       const token = localStorage.getItem("token");
       await axios.put(
-        "http://localhost:5000/api/turnos/liberar",
+        "http://localhost:5000/api/turnosSemanales/liberarSema",
         { turnoId, userId, tipo: "semanal" },
         { headers: { Authorization: `Bearer ${token}` } }
       );
