@@ -17,10 +17,10 @@ const TurnosSemanalesPage = () => {
       try {
         // Hacemos ambas peticiones en paralelo
         const [userRes, turnosRes] = await Promise.all([
-          axios.get(`http://localhost:5000/api/users/usuario/${userId}`, {
+          axios.get(`https://astrosfrontend.onrender.com/api/users/usuario/${userId}`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          axios.get(`http://localhost:5000/api/users/turnosSemanales/${userId}`, {
+          axios.get(`https://astrosfrontend.onrender.com/api/users/turnosSemanales/${userId}`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);
@@ -41,7 +41,7 @@ const TurnosSemanalesPage = () => {
     try {
       const token = localStorage.getItem("token");
       await axios.put(
-        "http://localhost:5000/api/turnosSemanales/liberarSema",
+        "https://astrosfrontend.onrender.com/api/turnosSemanales/liberarSema",
         { turnoId, userId, tipo: "semanal" },
         { headers: { Authorization: `Bearer ${token}` } }
       );

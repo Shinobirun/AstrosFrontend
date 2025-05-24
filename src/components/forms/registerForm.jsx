@@ -10,7 +10,7 @@ const RegisterForm = () => {
     confirmPassword: "",
     firstName: "",
     lastName: "",
-    role: "Principiante",
+    role: "Blanco",
   });
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -32,7 +32,7 @@ const RegisterForm = () => {
     }
 
     try {
-      await axios.post("http://localhost:5000/api/users/register", formData);
+      await axios.post("https://astrosfrontend.onrender.com/api/users/register", formData);
       setSuccessMessage("Usuario registrado con éxito");
       // NO redirigimos automáticamente
     } catch (err) {

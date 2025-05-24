@@ -19,8 +19,8 @@ const TurnosPage = () => {
       const token = localStorage.getItem("token");
       const endpoint =
         tipoTurno === "Mensuales"
-          ? "http://localhost:5000/api/turnos/todos"
-          : "http://localhost:5000/api/turnosSemanales/todoSema";
+          ? "https://astrosfrontend.onrender.com/api/turnos/todos"
+          : "https://astrosfrontend.onrender.com/api/turnosSemanales/todoSema";
 
       const { data } = await axios.get(endpoint, {
         headers: { Authorization: `Bearer ${token}` },

@@ -22,7 +22,7 @@ export default function TurnosList() {
   const cargarTurnos = () => {
     const token = localStorage.getItem("token");
     axios
-      .get("http://localhost:5000/api/turnos/todos", {
+      .get("https://astrosfrontend.onrender.com/api/turnos/todos", {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((response) => {
@@ -47,7 +47,7 @@ export default function TurnosList() {
     try {
       const token = localStorage.getItem("token");
       await axios.delete(
-        `http://localhost:5000/api/turnos/${turnoSeleccionado._id}`,
+        `https://astrosfrontend.onrender.com/api/turnos/${turnoSeleccionado._id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setDialogOpen(false);

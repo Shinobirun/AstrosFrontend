@@ -15,7 +15,7 @@ const TurnosDisponiblesPage = () => {
   const fetchTurnos = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get("http://localhost:5000/api/turnos", {
+      const response = await axios.get("https://astrosfrontend.onrender.com/api/turnos", {
         headers: { Authorization: `Bearer ${token}` },
       });
 

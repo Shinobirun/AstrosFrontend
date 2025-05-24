@@ -22,7 +22,7 @@ const AsignarTurnos = () => {
 
   const obtenerUsuarios = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/users/usuarios", { headers });
+      const res = await axios.get("https://astrosfrontend.onrender.com/api/users/usuarios", { headers });
       setUsuarios(res.data);
     } catch (err) {
       console.error("Error al obtener usuarios", err);
@@ -32,8 +32,8 @@ const AsignarTurnos = () => {
   const obtenerTurnosDisponibles = async (dia = "") => {
     try {
       const url = dia
-        ? `http://localhost:5000/api/turnos/todos?dia=${encodeURIComponent(dia)}`
-        : "http://localhost:5000/api/turnos/todos";
+        ? `https://astrosfrontend.onrender.com/api/turnos/todos?dia=${encodeURIComponent(dia)}`
+        : "https://astrosfrontend.onrender.com/api/turnos/todos";
       const res = await axios.get(url, { headers });
       const dias = ["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado","Domingo"];
       const ordenados = res.data.sort((a, b) => {
@@ -50,7 +50,7 @@ const AsignarTurnos = () => {
   const obtenerCreditosUsuario = async (usuarioId) => {
     try {
       const res = await axios.get(
-        `http://localhost:5000/api/creditos/usuario/${usuarioId}`,
+        `https://astrosfrontend.onrender.com/api/creditos/usuario/${usuarioId}`,
         { headers }
       );
       return res.data;
@@ -63,7 +63,7 @@ const AsignarTurnos = () => {
     const creditos = await obtenerCreditosUsuario(usuarioId);
     if (creditos.length) {
       await axios.delete(
-        `http://localhost:5000/api/creditos/${creditos[0]._id}`,
+        `https://astrosfrontend.onrender.com/api/creditos/${creditos[0]._id}`,
         { headers }
       );
     }
@@ -73,7 +73,7 @@ const AsignarTurnos = () => {
     setCargandoTurno(turnoId);
     try {
       const res = await axios.post(
-        "http://localhost:5000/api/turnos/asignar",
+        "https://astrosfrontend.onrender.com/api/turnos/asignar",
         { turnoId, userId: usuarioSeleccionado._id },
         { headers }
       );

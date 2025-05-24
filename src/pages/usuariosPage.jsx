@@ -15,14 +15,14 @@ const UsuariosPage = () => {
         if (!token) return console.error("No hay token disponible.");
 
         const { data: resUsers } = await axios.get(
-          "http://localhost:5000/api/users/usuarios",
+          "https://astrosfrontend.onrender.com/api/users/usuarios",
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setUsuarios(resUsers);
 
         const promCreds = resUsers.map((u) =>
           axios
-            .get(`http://localhost:5000/api/creditos/usuario/${u._id}`, {
+            .get(`https://astrosfrontend.onrender.com/api/creditos/usuario/${u._id}`, {
               headers: { Authorization: `Bearer ${token}` },
             })
             .then((r) => ({ userId: u._id, count: r.data.length }))

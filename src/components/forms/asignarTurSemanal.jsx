@@ -21,7 +21,7 @@ const AsignarTurnos = () => {
 
   const obtenerUsuarios = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/users/usuarios", { headers });
+      const res = await axios.get("https://astrosfrontend.onrender.com/api/users/usuarios", { headers });
       setUsuarios(res.data);
     } catch (err) {
       console.error("Error al obtener usuarios", err);
@@ -30,7 +30,7 @@ const AsignarTurnos = () => {
 
   const obtenerTurnosDisponibles = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/turnosSemanales/todoSema", { headers });
+      const res = await axios.get("https://astrosfrontend.onrender.com/api/turnosSemanales/todoSema", { headers });
       setTurnos(res.data);
     } catch (err) {
       console.error("Error al obtener turnos", err);
@@ -39,7 +39,7 @@ const AsignarTurnos = () => {
 
   const obtenerCreditosUsuario = async (usuarioId) => {
     try {
-      const res = await axios.get(`http://localhost:5000/api/creditos/usuario/${usuarioId}`, { headers });
+      const res = await axios.get(`https://astrosfrontend.onrender.com/api/creditos/usuario/${usuarioId}`, { headers });
       return res.data;
     } catch (error) {
       console.error("Error al obtener créditos", error);
@@ -52,7 +52,7 @@ const AsignarTurnos = () => {
       const creditos = await obtenerCreditosUsuario(usuarioId);
       if (creditos.length > 0) {
         const creditoMasAntiguo = creditos[0];
-        await axios.delete(`http://localhost:5000/api/creditos/${creditoMasAntiguo._id}`, { headers });
+        await axios.delete(`https://astrosfrontend.onrender.com/api/creditos/${creditoMasAntiguo._id}`, { headers });
       }
     } catch (error) {
       console.error("Error al eliminar crédito", error);
@@ -63,7 +63,7 @@ const AsignarTurnos = () => {
     setCargandoTurno(turnoId);
     try {
       const res = await axios.post(
-        "http://localhost:5000/api/turnosSemanales/asignarSema",
+        "https://astrosfrontend.onrender.com/api/turnosSemanales/asignarSema",
         {
           turnoId,
           userId: usuarioSeleccionado._id,

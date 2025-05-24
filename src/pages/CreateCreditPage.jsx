@@ -17,7 +17,7 @@ const CreateCreditPage = () => {
     const fetchUsuarios = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get("http://localhost:5000/api/users/usuarios", {
+        const res = await axios.get("https://astrosfrontend.onrender.com/api/users/usuarios", {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUsuarios(res.data);
@@ -40,7 +40,7 @@ const CreateCreditPage = () => {
     try {
       const token = localStorage.getItem("token");
       await axios.post(
-        "http://localhost:5000/api/creditos",
+        "https://astrosfrontend.onrender.com/api/creditos",
         { usuario: usuarioId, venceEn },
         { headers: { Authorization: `Bearer ${token}` } }
       );

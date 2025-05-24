@@ -28,7 +28,7 @@ const CrearTurno = () => {
     setError("");
     try {
       const token = localStorage.getItem("token");
-      await axios.post("http://localhost:5000/api/turnos/", formData, {
+      await axios.post("https://astrosfrontend.onrender.com/api/turnos/", formData, {
         headers: { Authorization: `Bearer ${token}` },
       });
       navigate("/turnos");

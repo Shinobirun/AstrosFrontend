@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Crear una instancia de axios con la URL base
 const API = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL: 'https://astrosfrontend.onrender.com/api',
   headers: {
     'Content-Type': 'application/json',
   },

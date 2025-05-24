@@ -20,11 +20,11 @@ const TurnosMensualesPage = () => {
 
       try {
         const perfilReq = axios.get(
-          `http://localhost:5000/api/users/usuario/${userId}`,
+          `https://astrosfrontend.onrender.com/api/users/usuario/${userId}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         const turnosReq = axios.get(
-          `http://localhost:5000/api/users/turnosMensuales/${userId}`,
+          `https://astrosfrontend.onrender.com/api/users/turnosMensuales/${userId}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
@@ -45,7 +45,7 @@ const TurnosMensualesPage = () => {
     try {
       const token = localStorage.getItem("token");
       await axios.put(
-        "http://localhost:5000/api/turnos/liberar",
+        "https://astrosfrontend.onrender.com/api/turnos/liberar",
         { turnoId, userId, tipo: "mensual" },
         { headers: { Authorization: `Bearer ${token}` } }
       );

@@ -23,7 +23,7 @@ const UpdateUserPage = () => {
       try {
         const token = localStorage.getItem("token");
         const { data: users } = await axios.get(
-          "http://localhost:5000/api/users/usuarios",
+          "https://astrosfrontend.onrender.com/api/users/usuarios",
           { headers: { Authorization: `Bearer ${token}` } }
         );
         const user = users.find((u) => u._id === userId);
@@ -68,7 +68,7 @@ const UpdateUserPage = () => {
       }
 
       await axios.put(
-        "http://localhost:5000/api/users/profile",
+        "https://astrosfrontend.onrender.com/api/users/profile",
         body,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -89,7 +89,7 @@ const UpdateUserPage = () => {
     try {
       const token = localStorage.getItem("token");
       const { data } = await axios.put(
-        "http://localhost:5000/api/users/deactivate",
+        "https://astrosfrontend.onrender.com/api/users/deactivate",
         { userId },
         { headers: { Authorization: `Bearer ${token}` } }
       );

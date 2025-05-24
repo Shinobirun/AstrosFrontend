@@ -14,7 +14,7 @@ const Dashboard = () => {
         return;
       }
       try {
-        const { data } = await axios.get("http://localhost:5000/api/users/profile", {
+        const { data } = await axios.get("https://astrosfrontend.onrender.com/api/users/profile", {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUser(data);
