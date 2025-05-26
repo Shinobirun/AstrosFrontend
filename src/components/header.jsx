@@ -8,7 +8,7 @@ function Header() {
         {/* Logo a la izquierda */}
         <Link to="/" className="flex items-center space-x-2">
           <img src="/Astros.png" alt="Astros Fulgor" className="h-8 w-auto" />
-          <span className="text-xl font-bold">Astros</span>
+          <span className="text-xl font-bold"></span>
         </Link>
 
         {/* Navegación */}
