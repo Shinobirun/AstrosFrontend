@@ -8,6 +8,9 @@ const TurnosPage = () => {
   const [selectedTurnos, setSelectedTurnos] = useState([]);
   const [filtroDia, setFiltroDia] = useState("Todos");
   const [tipoTurno, setTipoTurno] = useState("Mensuales");
+  const [modalVisible, setModalVisible] = useState(false);
+  const [jugadoresDelTurno, setJugadoresDelTurno] = useState([]);
+  const [loadingJugadores, setLoadingJugadores] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -28,7 +31,10 @@ const TurnosPage = () => {
 
       setTurnos(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error("Error al obtener los turnos:", error.response?.data || error.message);
+      console.error(
+        "Error al obtener los turnos:",
+        error.response?.data || error.message
+      );
     }
   };
 
@@ -59,9 +65,57 @@ const TurnosPage = () => {
       prev.includes(turnoId) ? prev.filter((id) => id !== turnoId) : [...prev, turnoId]
     );
 
+  const mostrarJugadores = async (turno) => {
+    if (!turno.ocupadoPor || turno.ocupadoPor.length === 0) {
+      setJugadoresDelTurno([]);
+      setModalVisible(true);
+      return;
+    }
+
+    setLoadingJugadores(true);
+    setModalVisible(true);
+
+    try {
+      const token = localStorage.getItem("token");
+      const jugadoresData = await Promise.all(
+        turno.ocupadoPor.map(async (userId) => {
+          const { data } = await axios.get(
+            `https://astrosfrontend.onrender.com/api/users/${userId}`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+          return {
+            firstName: data.first_name || data.firstName || "N/A",
+            lastName: data.last_name || data.lastName || "N/A",
+            role: data.role || data.rol || "N/A",
+          };
+        })
+      );
+      setJugadoresDelTurno(jugadoresData);
+    } catch (error) {
+      console.error(
+        "Error al cargar jugadores:",
+        error.response?.data || error.message
+      );
+      setJugadoresDelTurno([]);
+    } finally {
+      setLoadingJugadores(false);
+    }
+  };
+
+  const cerrarModal = () => {
+    setModalVisible(false);
+    setJugadoresDelTurno([]);
+  };
+
+  const diasMostrar =
+    filtroDia === "Todos"
+      ? ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"]
+      : [filtroDia];
+
   return (
     <div className="min-h-screen bg-gray-100 p-6">
-      {/* Logo */}
       <div className="flex justify-center mb-6">
         <img src="/Astros.png" alt="Astros Logo" className="h-16 w-auto" />
       </div>
@@ -70,7 +124,6 @@ const TurnosPage = () => {
         Calendario de Turnos
       </h2>
 
-      {/* Selectores */}
       <div className="flex justify-center mb-4 gap-4">
         <select
           className="p-2 border rounded-lg"
@@ -86,21 +139,21 @@ const TurnosPage = () => {
           onChange={(e) => setFiltroDia(e.target.value)}
         >
           <option value="Todos">Semana Completa</option>
-          {["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"].map((d) => (
-            <option key={d} value={d}>{d}</option>
-          ))}
+          {["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"].map(
+            (d) => (
+              <option key={d} value={d}>
+                {d}
+              </option>
+            )
+          )}
         </select>
       </div>
 
-      {/* Tabla */}
       <div className="overflow-x-auto max-w-full">
         <table className="min-w-full bg-white shadow rounded-lg">
           <thead>
             <tr className="border-b">
-              {(filtroDia === "Todos"
-                ? ["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"]
-                : [filtroDia]
-              ).map((day) => (
+              {diasMostrar.map((day) => (
                 <th key={day} className="text-center py-2 px-4 font-semibold">
                   {day}
                 </th>
@@ -109,10 +162,7 @@ const TurnosPage = () => {
           </thead>
           <tbody>
             <tr>
-              {(filtroDia === "Todos"
-                ? ["Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"]
-                : [filtroDia]
-              ).map((day) => (
+              {diasMostrar.map((day) => (
                 <td key={day} className="py-2 px-4 border-b align-top">
                   {groupedTurnos[day]?.length > 0 ? (
                     <ul>
@@ -126,11 +176,22 @@ const TurnosPage = () => {
                           }`}
                           onClick={() => toggleSelectTurno(t._id)}
                         >
-                          <span className="font-semibold">{t.nivel}</span> - {t.hora} -{" "}
-                          <span className="italic text-blue-600">{t.sede}</span>
+                          <div>
+                            <span className="font-semibold">{t.nivel}</span> - {t.hora} -{" "}
+                            <span className="italic text-blue-600">{t.sede}</span>
+                          </div>
                           <div className="text-sm text-gray-600">
                             Cupos: {t.cuposDisponibles}
                           </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              mostrarJugadores(t);
+                            }}
+                            className="mt-2 px-2 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
+                          >
+                            Mostrar jugadores
+                          </button>
                         </li>
                       ))}
                     </ul>
@@ -144,7 +205,6 @@ const TurnosPage = () => {
         </table>
       </div>
 
-      {/* Botón para volver */}
       <div className="mt-6 text-center">
         <button
           onClick={() => navigate("/dashboard")}
@@ -153,6 +213,38 @@ const TurnosPage = () => {
           ← Volver al Dashboard
         </button>
       </div>
+
+      {modalVisible && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-96 max-w-full">
+            <h3 className="text-lg font-semibold mb-4">Jugadores del Turno</h3>
+
+            {loadingJugadores ? (
+              <p>Cargando jugadores...</p>
+            ) : jugadoresDelTurno.length > 0 ? (
+              <ul className="space-y-2">
+                {jugadoresDelTurno.map((j, i) => (
+                  <li key={i} className="text-gray-800">
+                    {j.firstName} {j.lastName} -{" "}
+                    <span className="text-sm text-gray-600">{j.role}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-gray-600">No hay jugadores registrados.</p>
+            )}
+
+            <div className="mt-4 text-right">
+              <button
+                onClick={cerrarModal}
+                className="px-4 py-2 text-sm bg-gray-300 hover:bg-gray-400 rounded"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
