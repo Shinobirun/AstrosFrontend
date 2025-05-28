@@ -121,7 +121,7 @@ const Dashboard = () => {
           {isStudent && (
   <>
           <button
-            onClick={() => navigate(`/turnos-Disponibles/${user.role}`)}
+            onClick={() => navigate(`/misTurnos/`)}
             className={`${btnBase} bg-purple-600 hover:bg-purple-700 text-white focus:ring-purple-300`}
           >
             Mis Turnos

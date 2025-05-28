@@ -15,6 +15,7 @@ import TurnosMensualesPage from "./pages/turnosMensualesPage.jsx";
 import TurnosSemanalesPage from "./pages/turnosSemanalesPage.jsx";
 import UpdateUserPage from "./pages/UpdateUserPage.jsx";
 import CreateCreditPage from "./pages/CreateCreditPage.jsx"
+import MisTurnos from "./pages/misTurnos.jsx";
 
 
 // Componente para proteger rutas que requieren autenticación
@@ -48,6 +49,8 @@ function App() {
       <Route path="/eliminarTurno" element={<ProtectedRoute element={<EliminarTurno />} />} />
       <Route path="/asignarTurno" element={<ProtectedRoute element={<AsignarTurno />} />} />
       <Route path="/asignarTurSemanal" element={<ProtectedRoute element={<AsignarTurSema />} />} />
+      <Route path="/misTurnos" element={<ProtectedRoute element={<MisTurnos />} />} />
+      
 
       {/* Nuevas páginas de turnos y edición */}
       <Route
