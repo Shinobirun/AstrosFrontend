@@ -119,14 +119,25 @@ const Dashboard = () => {
           )}
 
           {isStudent && (
-            <button
-              onClick={() => navigate(`/turnos-disponibles/${user.role}`)}
-              className={`${btnBase} bg-purple-600 hover:bg-purple-700 text-white focus:ring-purple-300`}
-            >
-              Turnos disponibles
-            </button>
-          )}
+  <>
+          <button
+            onClick={() => navigate(`/turnos-Disponibles/${user.role}`)}
+            className={`${btnBase} bg-purple-600 hover:bg-purple-700 text-white focus:ring-purple-300`}
+          >
+            Mis Turnos
+          </button>
 
+          <button
+            onClick={() => navigate('/turnosSemanales')}
+            className={`${btnBase} bg-indigo-600 hover:bg-indigo-700 text-white focus:ring-red-300`}
+          >
+            Turnos disponibles
+          </button>
+        </>
+      )}
+
+          
+          
           {/* Cerrar sesión */}
           <button
             onClick={() => {

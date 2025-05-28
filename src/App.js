@@ -5,7 +5,7 @@ import LoginForm from "./components/forms/loguinForm";
 import Dashboard from "./pages/dasboardPage";
 import TurnosPage from "./pages/turnosPage"; 
 import UsuariosPage from "./pages/usuariosPage";
-import TurnosDisponiblesPage from "./pages/turnosDisponiblesPage";
+import MisTurnosDisponibles from "./pages/misTurnosDisponibles.jsx";
 import PerfilPage from "./pages/perfilPage";
 import CrearTurno from "./components/forms/crearTurno.jsx";
 import EliminarTurno from "./components/forms/eliminarTurno.jsx";
@@ -42,10 +42,7 @@ function App() {
       <Route path="/dashboard" element={<ProtectedRoute element={<Dashboard />} />} />
       <Route path="/turnos" element={<ProtectedRoute element={<TurnosPage />} />} />
       <Route path="/usuarios" element={<ProtectedRoute element={<UsuariosPage />} />} />
-      <Route
-        path="/turnos-disponibles/:nivel"
-        element={<ProtectedRoute element={<TurnosDisponiblesPage />} />}
-      />
+      <Route path="/turnosSemanales" element={<ProtectedRoute element={<MisTurnosDisponibles />} />} />
       <Route path="/perfil" element={<ProtectedRoute element={<PerfilPage />} />} />
       <Route path="/crearTurno" element={<ProtectedRoute element={<CrearTurno />} />} />
       <Route path="/eliminarTurno" element={<ProtectedRoute element={<EliminarTurno />} />} />

@@ -63,7 +63,7 @@ const TurnosDisponiblesPage = () => {
     try {
       const token = localStorage.getItem("token");
       await axios.post(
-        "http://localhost:5000/api/turnos/tomar",
+        "https://astrosfrontend.onrender.com/api/turnos/tomar",
         { turnoId },
         {
           headers: { Authorization: `Bearer ${token}` },
