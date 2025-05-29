@@ -206,12 +206,13 @@ const TurnosPage = () => {
       </div>
 
       <div className="mt-6 text-center">
-        <button
-          onClick={() => navigate("/dashboard")}
-          className="text-sm text-blue-600 hover:underline"
-        >
-          ← Volver al Dashboard
-        </button>
+       {/* Botón para volver al dashboard */}
+      <button
+        onClick={() => navigate('/dashboard')} // 👈 Redirecciona al dashboard
+        className="mt-8 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+      >
+        Volver al Dashboard
+      </button>
       </div>
 
       {modalVisible && (

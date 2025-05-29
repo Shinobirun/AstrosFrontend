@@ -154,12 +154,13 @@ export default function TurnosList() {
 
       {/* Volver al Dashboard */}
       <div className="mt-6 text-center">
-        <button
-          onClick={() => navigate("/dashboard")}
-          className="text-sm text-blue-600 hover:underline"
-        >
-          ← Volver al Dashboard
-        </button>
+        
+      <button
+        onClick={() => navigate('/dashboard')} // 👈 Redirecciona al dashboard
+        className="mt-2 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+      >
+        Volver al Dashboard
+      </button>
       </div>
     </div>
   );

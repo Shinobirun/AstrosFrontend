@@ -66,7 +66,7 @@ const RegisterForm = () => {
             />
           </div>
 
-          {/* Email */}
+         {/* Email */}
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Email
@@ -76,7 +76,8 @@ const RegisterForm = () => {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              required
+              // QUITÁ ESTE required:
+              // required
               className="w-full mt-1 px-4 py-2 border rounded focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
               placeholder="Ingrese su email"
             />
@@ -171,24 +172,45 @@ const RegisterForm = () => {
             <p className="text-green-500 text-sm mt-2">{successMessage}</p>
           )}
 
-          <button
-            type="submit"
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
-            Registrarse
-          </button>
-        </form>
+             {/* Botón de Registro */}
+            <button
+              type="submit"
+              className="
+                w-full
+                py-2 px-4
+                rounded-lg
+                bg-indigo-600 hover:bg-indigo-700
+                text-white font-medium
+                focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500
+                transition-colors duration-300
+                mb-4            /* margen inferior */
+              "
+            >
+              Registrarse
+            </button>
+          </form>
 
-        {/* Botón para volver al Dashboard */}
-        <div className="mt-4 text-center">
-          <button
-            onClick={() => navigate("/dashboard")}
-            className="text-sm text-blue-600 hover:underline"
-          >
-            ← Volver al Dashboard
-          </button>
+          {/* Botón para volver al dashboard */}
+          <div className="flex justify-center mt-4">  {/* margen superior */}
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="
+                w-full
+                py-2 px-4
+                rounded-lg
+                bg-green-600 hover:bg-green-700
+                text-white font-medium
+                focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500
+                transition-colors duration-300
+              "
+            >
+              Volver al Dashboard
+            </button>
         </div>
+
+     
       </div>
+      
     </div>
   );
 };

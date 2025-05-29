@@ -115,15 +115,25 @@ const UsuariosPage = () => {
         )}
       </div>
 
-      {/* Volver al Dashboard */}
-      <div className="mt-6 text-center">
-        <button
-          onClick={() => navigate("/dashboard")}
-          className="text-sm text-blue-600 hover:underline"
-        >
-          ← Volver al Dashboard
-        </button>
-      </div>
+       {/* Botón para volver al dashboard */}
+          
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="
+              block         /* para que respete el margin auto */
+              mx-auto       /* centra horizontalmente */
+              h-10
+              mt-2
+              py-2 px-4
+              rounded-lg
+              bg-green-600 hover:bg-green-700
+              text-white font-medium
+              focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500
+              transition-colors duration-300
+            "
+            >
+              Volver al Dashboard
+            </button>
     </div>
   );
 };

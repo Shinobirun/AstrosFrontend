@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom'; // 👈 Importamos useNavigate
 import axios from 'axios';
 
 function MisTurnos() {
@@ -8,6 +9,7 @@ function MisTurnos() {
   const [error, setError] = useState(null);
   const [filtro, setFiltro] = useState('semanal');
 
+  const navigate = useNavigate(); // 👈 Hook para redirección
   const diasOrden = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
   useEffect(() => {
@@ -31,7 +33,6 @@ function MisTurnos() {
     return [...turnos].sort((a, b) => {
       const diaA = diasOrden.indexOf(a.dia);
       const diaB = diasOrden.indexOf(b.dia);
-
       if (diaA !== diaB) return diaA - diaB;
 
       const [horaA, minA] = a.hora.split(':').map(Number);
@@ -51,7 +52,6 @@ function MisTurnos() {
 
       await axios.put('https://astrosfrontend.onrender.com/api/turnosSemanales/liberarSema', { turnoId }, config);
 
-      // Eliminar el turno liberado del estado
       if (filtro === 'semanal') {
         setTurnosSemanales(prev => prev.filter(t => t._id !== turnoId));
       } else {
@@ -133,6 +133,14 @@ function MisTurnos() {
           ))}
         </ul>
       )}
+
+      {/* Botón para volver al dashboard */}
+      <button
+        onClick={() => navigate('/dashboard')} // 👈 Redirecciona al dashboard
+        className="mt-8 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+      >
+        Volver al Dashboard
+      </button>
     </div>
   );
 }

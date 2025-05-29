@@ -3,7 +3,7 @@ import axios from "axios";
 
 const LoginForm = () => {
   const [formData, setFormData] = useState({
-    email: "",
+    username: "",
     password: "",
   });
 
@@ -36,7 +36,7 @@ const LoginForm = () => {
       setSuccessMessage("Inicio de sesión exitoso");
       
       setTimeout(() => {
-        window.location.href = "/dashboard"; // Redireccionar a la página principal
+        window.location.href = "/dashboard";
       }, 1500);
     } catch (error) {
       setError(error.response?.data.message || "Error al iniciar sesión");
@@ -54,16 +54,16 @@ const LoginForm = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700">
-              Email
+              Usuario
             </label>
             <input
-              type="email"
-              name="email"
-              value={formData.email}
+              type="text"
+              name="username"
+              value={formData.username}
               onChange={handleChange}
               required
               className="w-full mt-1 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="Ingrese su email"
+              placeholder="Ingrese su usuario"
             />
           </div>
           <div>

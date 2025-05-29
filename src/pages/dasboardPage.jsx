@@ -4,6 +4,7 @@ import axios from "axios";
 
 const Dashboard = () => {
   const [user, setUser] = useState(null);
+  const [creditos, setCreditos] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -14,11 +15,24 @@ const Dashboard = () => {
         return;
       }
       try {
+        // Obtener perfil del usuario
         const { data } = await axios.get("https://astrosfrontend.onrender.com/api/users/profile", {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUser(data);
-      } catch {
+
+        // Obtener créditos del usuario por ID
+        const resCreds = await axios.get(
+          `https://astrosfrontend.onrender.com/api/creditos/usuario/${data._id}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        const cantidad = Array.isArray(resCreds.data) ? resCreds.data.length : 0;
+        setCreditos(cantidad);
+        console.log(`Créditos reales para ${data.username}:`, cantidad);
+      } catch (err) {
+        console.error("Error al obtener datos:", err.message);
         localStorage.removeItem("token");
         navigate("/login");
       }
@@ -46,20 +60,20 @@ const Dashboard = () => {
           <img src="/Astros.png" alt="Astros Logo" className="h-16 w-auto" />
         </div>
 
-        <h2 className="text-2xl font-bold mb-6 text-center text-gray-800"></h2>
-
         <div className="text-center space-y-2 mb-6">
           <p className="text-lg font-semibold text-gray-800">
             Bienvenido, {user.firstName} {user.lastName}!
           </p>
           <p className="text-gray-600">Email: {user.email}</p>
           <p className="text-gray-600">Rol: {user.role}</p>
+          <p className="text-gray-600">
+            Créditos: <strong>{creditos !== null ? creditos : "Cargando..."}</strong>
+          </p>
         </div>
 
         <div className="space-y-3">
           {isAdminOrProf && (
             <>
-              {/* Gestión de usuarios */}
               <button
                 onClick={() => navigate("/register")}
                 className={`${btnBase} bg-green-600 hover:bg-green-700 text-white focus:ring-green-300`}
@@ -72,9 +86,6 @@ const Dashboard = () => {
               >
                 Ver todos los usuarios
               </button>
-             
-
-              {/* Gestión de turnos */}
               <button
                 onClick={() => navigate("/crearTurno")}
                 className={`${btnBase} bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-300`}
@@ -93,16 +104,12 @@ const Dashboard = () => {
               >
                 Ver todos los turnos
               </button>
-
-              {/* Créditos */}
               <button
                 onClick={() => navigate("/crear-credito")}
                 className={`${btnBase} bg-indigo-600 hover:bg-indigo-700 text-white focus:ring-indigo-300`}
               >
                 Crear Crédito
               </button>
-
-              {/* Asignar turnos */}
               <button
                 onClick={() => navigate("/asignarTurno")}
                 className={`${btnBase} bg-orange-500 hover:bg-orange-600 text-white focus:ring-orange-300`}
@@ -119,26 +126,22 @@ const Dashboard = () => {
           )}
 
           {isStudent && (
-  <>
-          <button
-            onClick={() => navigate(`/misTurnos/`)}
-            className={`${btnBase} bg-purple-600 hover:bg-purple-700 text-white focus:ring-purple-300`}
-          >
-            Mis Turnos
-          </button>
+            <>
+              <button
+                onClick={() => navigate(`/misTurnos/`)}
+                className={`${btnBase} bg-purple-600 hover:bg-purple-700 text-white focus:ring-purple-300`}
+              >
+                Mis Turnos
+              </button>
+              <button
+                onClick={() => navigate("/turnosSemanales")}
+                className={`${btnBase} bg-indigo-600 hover:bg-indigo-700 text-white focus:ring-red-300`}
+              >
+                Turnos disponibles
+              </button>
+            </>
+          )}
 
-          <button
-            onClick={() => navigate('/turnosSemanales')}
-            className={`${btnBase} bg-indigo-600 hover:bg-indigo-700 text-white focus:ring-red-300`}
-          >
-            Turnos disponibles
-          </button>
-        </>
-      )}
-
-          
-          
-          {/* Cerrar sesión */}
           <button
             onClick={() => {
               localStorage.removeItem("token");

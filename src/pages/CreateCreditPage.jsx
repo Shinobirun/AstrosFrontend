@@ -121,7 +121,7 @@ const CreateCreditPage = () => {
             <button
               type="button"
               onClick={() => navigate('/dashboard')}
-              className="px-4 py-2 rounded border text-gray-700 hover:bg-gray-100"
+              className="px-4 py-2 rounded border bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
             >
               ← Volver al Dashboard
             </button>

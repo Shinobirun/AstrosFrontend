@@ -115,26 +115,49 @@ const AsignarTurnos = () => {
       {!usuarioSeleccionado && (
         <div className="mb-4">
           <h2 className="text-lg font-semibold mb-2 text-center">Seleccioná un usuario:</h2>
-          <ul className="space-y-2">
-            {usuarios.map((user) => (
-              <li key={user._id} className="flex justify-center">
-                <button
-                  onClick={() => {
-                    setUsuarioSeleccionado(user);
-                    obtenerTurnosDisponibles();
-                  }}
-                  className="bg-blue-500 hover:bg-blue-700 text-white px-4 py-2 rounded"
-                >
-                  {user.firstName} {user.lastName} ({user.username})
-                </button>
-              </li>
-            ))}
-          </ul>
+          <ul className="space-y-4">
+  {usuarios.map((user) => (
+    <li key={user._id} className="flex justify-center">
+      <button
+        onClick={() => {
+          setUsuarioSeleccionado(user);
+          obtenerTurnosDisponibles();
+        }}
+        className="
+          w-48            /* ancho fijo para todos */
+          text-center     /* centrado interno */
+          bg-blue-500 hover:bg-blue-700
+          text-white
+          font-medium
+          py-2
+          rounded-lg
+          transition-colors duration-300
+          focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-300
+        "
+      >
+        {user.firstName} {user.lastName}
+        <br />
+        <span className="text-sm">({user.username})</span>
+      </button>
+    </li>
+  ))}
+</ul>
           <button
-              onClick={() => navigate("/dashboard")}
-              className="mb-4 text-blue-600 hover:underline"
+              type="button"
+              onClick={() => navigate('/dashboard')}
+              className="
+              block         /* para que respete el margin auto */
+              mx-auto       /* centra horizontalmente */
+              h-10
+              mt-2
+              py-2 px-4
+              rounded-lg
+              bg-green-600 hover:bg-green-700
+              text-white font-medium
+              focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500
+              transition-colors duration-300"
             >
-              ← Dashboard
+              ← Volver al Dashboard
             </button>
         </div>
       )}
