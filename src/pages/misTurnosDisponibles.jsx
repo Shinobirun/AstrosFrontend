@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -6,18 +7,18 @@ const MisTurnosDisponibles = () => {
   const [turnos, setTurnos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [mensaje, setMensaje] = useState('');       // Texto del modal
-  const [modalVisible, setModalVisible] = useState(false); // Controla visibilidad
+  const [mensaje, setMensaje] = useState('');
+  const [modalVisible, setModalVisible] = useState(false);
   const navigate = useNavigate();
 
   const fetchTurnos = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(
+      const { data } = await axios.get(
         'https://astrosfrontend.onrender.com/api/turnosSemanales/disponibles',
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setTurnos(response.data);
+      setTurnos(data);
     } catch (err) {
       setError('Error al cargar los turnos');
       console.error(err);
@@ -30,15 +31,31 @@ const MisTurnosDisponibles = () => {
     fetchTurnos();
   }, []);
 
+  const eliminarCreditoMasAntiguo = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    await axios.delete(
+      'https://astrosfrontend.onrender.com/api/creditos/oldest',
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+  } catch (err) {
+    console.error('Error al eliminar crédito más antiguo:', err);
+  }
+};
+
   const tomarTurno = async (turnoId) => {
     try {
       const token = localStorage.getItem('token');
+      // 1) Tomar turno
       await axios.post(
         `https://astrosfrontend.onrender.com/api/turnosSemanales/tomar/${turnoId}`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setMensaje('Turno tomado con éxito');
+      // 2) Eliminar crédito más antiguo
+      await eliminarCreditoMasAntiguo();
+      // 3) Mensaje y refresco
+      setMensaje('Turno tomado y crédito eliminado correctamente');
       setModalVisible(true);
       fetchTurnos();
     } catch (err) {
@@ -92,7 +109,7 @@ const MisTurnosDisponibles = () => {
         ⬅ Volver al Dashboard
       </button>
 
-      {/* --- Modal de mensajes --- */}
+      {/* Modal */}
       {modalVisible && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-sm w-full shadow-lg text-center">
