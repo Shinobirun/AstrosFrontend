@@ -41,6 +41,30 @@ function MisTurnos() {
     });
   };
 
+  const liberarTurno = async (turnoId) => {
+    const confirmar = window.confirm('¿Estás seguro de que querés liberar este turno? Se generará un crédito.');
+    if (!confirmar) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const config = { headers: { Authorization: `Bearer ${token}` } };
+
+      await axios.put('https://astrosfrontend.onrender.com/api/turnosSemanales/liberarSema', { turnoId }, config);
+
+      // Eliminar el turno liberado del estado
+      if (filtro === 'semanal') {
+        setTurnosSemanales(prev => prev.filter(t => t._id !== turnoId));
+      } else {
+        setTurnosMensuales(prev => prev.filter(t => t._id !== turnoId));
+      }
+
+      alert('Turno liberado correctamente. Se ha generado un crédito.');
+    } catch (error) {
+      console.error(error);
+      alert('Error al liberar el turno.');
+    }
+  };
+
   if (loading)
     return (
       <div className="flex justify-center items-center h-screen">
@@ -99,7 +123,12 @@ function MisTurnos() {
                 <span className="font-semibold">Cupos disponibles:</span>{' '}
                 {(Number(turno.cuposDisponibles) || 0) - (turno.ocupadoPor?.length || 0)}
               </p>
-
+              <button
+                onClick={() => liberarTurno(turno._id)}
+                className="mt-2 px-4 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600"
+              >
+                Liberar turno
+              </button>
             </li>
           ))}
         </ul>
