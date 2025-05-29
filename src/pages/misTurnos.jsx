@@ -95,7 +95,11 @@ function MisTurnos() {
               <p className="text-gray-600">{turno.descripcion}</p>
               <p className="text-gray-600"><span className="font-semibold">Sede:</span> {turno.sede}</p>
               <p className="text-gray-600"><span className="font-semibold">Día:</span> {turno.dia}</p>
-              <p className="text-gray-600"><span className="font-semibold">Cupos:</span> {turno.cupos}</p>
+              <p className="text-gray-600">
+                <span className="font-semibold">Cupos disponibles:</span>{' '}
+                {(Number(turno.cuposDisponibles) || 0) - (turno.ocupadoPor?.length || 0)}
+              </p>
+
             </li>
           ))}
         </ul>
