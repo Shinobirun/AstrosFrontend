@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // 👈 Importamos useNavigate
+import { useNavigate } from 'react-router-dom'; 
 import axios from 'axios';
 
 function MisTurnos() {
@@ -8,8 +8,9 @@ function MisTurnos() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filtro, setFiltro] = useState('semanal');
+  const [modalMensaje, setModalMensaje] = useState(null); // Estado modal
 
-  const navigate = useNavigate(); // 👈 Hook para redirección
+  const navigate = useNavigate();
   const diasOrden = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
   useEffect(() => {
@@ -58,10 +59,11 @@ function MisTurnos() {
         setTurnosMensuales(prev => prev.filter(t => t._id !== turnoId));
       }
 
-      alert('Turno liberado correctamente. Se ha generado un crédito.');
+      // Cambié alert por modal
+      setModalMensaje('Turno liberado correctamente. Se ha generado un crédito.');
     } catch (error) {
       console.error(error);
-      alert('Error al liberar el turno.');
+      setModalMensaje('Error al liberar el turno.');
     }
   };
 
@@ -83,7 +85,7 @@ function MisTurnos() {
   const turnosOrdenados = ordenarTurnos(turnosAMostrar);
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 p-6">
+    <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 p-6 relative">
       <h2 className="text-2xl font-bold mb-6 text-gray-800">Mis Turnos {filtro === 'semanal' ? 'Semanales' : 'Mensuales'}</h2>
 
       <div className="mb-6 flex space-x-4">
@@ -136,11 +138,26 @@ function MisTurnos() {
 
       {/* Botón para volver al dashboard */}
       <button
-        onClick={() => navigate('/dashboard')} // 👈 Redirecciona al dashboard
+        onClick={() => navigate('/dashboard')}
         className="mt-8 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
       >
         Volver al Dashboard
       </button>
+
+      {/* Modal para mensajes */}
+      {modalMensaje && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-sm w-full shadow-lg text-center">
+            <p className="mb-4 text-gray-800">{modalMensaje}</p>
+            <button
+              onClick={() => setModalMensaje(null)}
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
