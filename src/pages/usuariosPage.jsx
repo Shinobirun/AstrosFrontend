@@ -5,39 +5,25 @@ import { Helmet } from "react-helmet";
 
 const UsuariosPage = () => {
   const [usuarios, setUsuarios] = useState([]);
-  const [creditCounts, setCreditCounts] = useState({});
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchUsuariosYCreditos = async () => {
+    const fetchUsuarios = async () => {
       try {
         const token = localStorage.getItem("token");
-        if (!token) return console.error("No hay token disponible.");
+        if (!token) throw new Error("No hay token disponible");
 
-        const { data: resUsers } = await axios.get(
+        const { data } = await axios.get(
           "https://astrosfrontend.onrender.com/api/users/usuarios",
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        setUsuarios(resUsers);
-
-        const promCreds = resUsers.map((u) =>
-          axios
-            .get(`https://astrosfrontend.onrender.com/api/creditos/usuario/${u._id}`, {
-              headers: { Authorization: `Bearer ${token}` },
-            })
-            .then((r) => ({ userId: u._id, count: r.data.length }))
-            .catch(() => ({ userId: u._id, count: 0 }))
-        );
-        const resultados = await Promise.all(promCreds);
-        const counts = {};
-        resultados.forEach(({ userId, count }) => (counts[userId] = count));
-        setCreditCounts(counts);
-      } catch (error) {
-        console.error("Error al obtener datos:", error.response?.data || error.message);
+        setUsuarios(data);
+      } catch (err) {
+        console.error("Error al obtener usuarios:", err.response?.data || err.message);
       }
     };
 
-    fetchUsuariosYCreditos();
+    fetchUsuarios();
   }, []);
 
   const verTurnosMensuales = (userId) => navigate(`/turnosMensuales/${userId}`);
@@ -69,10 +55,11 @@ const UsuariosPage = () => {
               >
                 <div>
                   <span className="font-semibold">
-                    {index + 1}. {user.firstName} {user.lastName}
+                    {index + 1}. {user.firstName} {user.lastName}{" "}
+                    <span className="text-sm text-gray-600">({user.username})</span>
                   </span>
-                  <p className="text-sm text-gray-600">{user.email}</p>
-                  <p className="text-sm font-medium text-gray-800">Nivel: {user.role}</p>
+                  <p className="text-sm text-gray-600">Email: {user.email || "—"}</p>
+                  <p className="text-sm font-medium text-gray-800">Rol: {user.role}</p>
                   <p className="text-sm text-gray-600">
                     Creado: {new Date(user.createdAt).toLocaleDateString()}
                   </p>
@@ -83,26 +70,26 @@ const UsuariosPage = () => {
                       : "No disponible"}
                   </p>
                   <p className="mt-2 text-sm">
-                    Créditos: <strong>{creditCounts[user._id] || 0}</strong>
+                    Créditos: <strong>{user.creditos?.length || 0}</strong>
                   </p>
                 </div>
 
                 <div className="mt-4 flex gap-2">
                   <button
                     onClick={() => verTurnosMensuales(user._id)}
-                    className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
                   >
                     Turnos Mensuales
                   </button>
                   <button
                     onClick={() => verTurnosSemanales(user._id)}
-                    className="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 rounded focus:outline-none focus:ring-2 focus:ring-green-300"
+                    className="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 rounded focus:outline-none focus:ring-2 focus:ring-green-300 transition"
                   >
                     Turnos Semanales
                   </button>
                   <button
                     onClick={() => navigate(`/editarUsuarios/${user._id}`)}
-                    className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white py-2 rounded focus:outline-none focus:ring-2 focus:ring-yellow-300"
+                    className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white py-2 rounded focus:outline-none focus:ring-2 focus:ring-yellow-300 transition"
                   >
                     Editar
                   </button>
@@ -115,25 +102,23 @@ const UsuariosPage = () => {
         )}
       </div>
 
-       {/* Botón para volver al dashboard */}
-          
-            <button
-              onClick={() => navigate('/dashboard')}
-              className="
-              block         /* para que respete el margin auto */
-              mx-auto       /* centra horizontalmente */
-              h-10
-              mt-2
-              py-2 px-4
-              rounded-lg
-              bg-green-600 hover:bg-green-700
-              text-white font-medium
-              focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500
-              transition-colors duration-300
-            "
-            >
-              Volver al Dashboard
-            </button>
+      {/* Volver al Dashboard */}
+      <div className="mt-6 flex justify-center">
+        <button
+          onClick={() => navigate("/dashboard")}
+          className="
+            w-full max-w-xs
+            py-2 px-4
+            rounded-lg
+            bg-green-600 hover:bg-green-700
+            text-white font-medium text-center
+            focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500
+            transition-colors duration-300
+          "
+        >
+          Volver al Dashboard
+        </button>
+      </div>
     </div>
   );
 };
