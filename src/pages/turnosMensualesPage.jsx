@@ -55,6 +55,65 @@ const TurnosMensualesPage = () => {
     }
   };
 
+  const renderCalendar = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth();
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    const calendarDays = [];
+
+    for (let i = 0; i < firstDay; i++) {
+      calendarDays.push(<div key={`empty-${i}`} className="p-2 h-32 border bg-gray-50" />);
+    }
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const isToday = today.getDate() === day &&
+                      today.getMonth() === month &&
+                      today.getFullYear() === year;
+
+      const diaSemana = new Date(year, month, day).toLocaleDateString("es-AR", {
+        weekday: "long",
+      });
+
+      const turnosDelDia = turnos.filter((t) => t.dia.toLowerCase() === diaSemana.toLowerCase());
+
+      const dayClass = isToday
+        ? "border-4 border-green-600 bg-white text-black p-2 h-32 align-top overflow-y-auto text-sm"
+        : "border bg-white text-black p-2 h-32 align-top overflow-y-auto text-sm";
+
+      calendarDays.push(
+        <div key={day} className={dayClass}>
+          <strong>{day}</strong>
+          {turnosDelDia.map((t, i) => (
+            <div key={i} className="mt-1">
+              <div className="text-xs font-semibold">{t.sede}</div>
+              <div className="text-xs text-gray-700">{t.nivel}</div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    return (
+      <div className="mt-8">
+        <h3 className="text-xl font-bold mb-2">Calendario de Turnos</h3>
+        <div className="grid grid-cols-7 gap-1 border rounded overflow-hidden bg-white">
+          <div className="bg-gray-200 text-center font-bold p-1 text-sm">Dom</div>
+          <div className="bg-gray-200 text-center font-bold p-1 text-sm">Lun</div>
+          <div className="bg-gray-200 text-center font-bold p-1 text-sm">Mar</div>
+          <div className="bg-gray-200 text-center font-bold p-1 text-sm">Mié</div>
+          <div className="bg-gray-200 text-center font-bold p-1 text-sm">Jue</div>
+          <div className="bg-gray-200 text-center font-bold p-1 text-sm">Vie</div>
+          <div className="bg-gray-200 text-center font-bold p-1 text-sm">Sáb</div>
+          {calendarDays}
+        </div>
+      </div>
+    );
+  };
+
   if (cargando) return <p className="p-4">Cargando…</p>;
   if (!usuario) return <p className="p-4">Usuario no encontrado.</p>;
 
@@ -65,7 +124,7 @@ const TurnosMensualesPage = () => {
         <img src="/Astros.png" alt="Astros logo" className="h-20" />
       </div>
 
-      {/* Botón volver al dashboard */}
+      {/* Botones navegación */}
       <div className="mb-4">
         <button
           onClick={() => navigate("/dashboard")}
@@ -73,8 +132,6 @@ const TurnosMensualesPage = () => {
         >
           ← Volver al Dashboard
         </button>
-
-        {/* Botón retroceder (opcional, lo podés sacar si no lo usás) */}
         <button
           onClick={() => navigate(-1)}
           className="text-blue-600 hover:underline"
@@ -90,27 +147,32 @@ const TurnosMensualesPage = () => {
       {turnos.length === 0 ? (
         <p>No hay turnos mensuales asignados.</p>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {turnos.map((t) => (
-            <div
-              key={t._id}
-              className="bg-white p-4 rounded shadow flex flex-col justify-between"
-            >
-              <div>
-                <p><strong>Sede:</strong> {t.sede}</p>
-                <p><strong>Nivel:</strong> {t.nivel}</p>
-                <p><strong>Día:</strong> {t.dia}</p>
-                <p><strong>Hora:</strong> {t.hora}</p>
-              </div>
-              <button
-                onClick={() => liberar(t._id)}
-                className="mt-4 bg-red-500 hover:bg-red-600 text-white py-2 rounded"
+        <>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {turnos.map((t) => (
+              <div
+                key={t._id}
+                className="bg-white p-4 rounded shadow flex flex-col justify-between"
               >
-                Liberar turno
-              </button>
-            </div>
-          ))}
-        </div>
+                <div>
+                  <p><strong>Sede:</strong> {t.sede}</p>
+                  <p><strong>Nivel:</strong> {t.nivel}</p>
+                  <p><strong>Día:</strong> {t.dia}</p>
+                  <p><strong>Hora:</strong> {t.hora}</p>
+                </div>
+                <button
+                  onClick={() => liberar(t._id)}
+                  className="mt-4 bg-red-500 hover:bg-red-600 text-white py-2 rounded"
+                >
+                  Liberar turno
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* Calendario */}
+          {renderCalendar()}
+        </>
       )}
     </div>
   );

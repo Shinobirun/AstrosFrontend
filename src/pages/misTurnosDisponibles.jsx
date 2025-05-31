@@ -35,7 +35,7 @@ const MisTurnosDisponibles = () => {
   try {
     const token = localStorage.getItem('token');
     await axios.delete(
-      'https://astrosfrontend.onrender.com/api/creditos/oldest',
+      'https://astrosfrontend.onrender.com/api/users/creditos/oldest',
       { headers: { Authorization: `Bearer ${token}` } }
     );
   } catch (err) {

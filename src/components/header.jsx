@@ -22,6 +22,14 @@ function Header() {
                 Loguearse
               </Link>
             </li>
+            <li>
+              <Link
+                to="/register"
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              >
+                Registrarse
+              </Link>
+            </li>
           </ul>
         </nav>
       </div>
