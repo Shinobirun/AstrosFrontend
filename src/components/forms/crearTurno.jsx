@@ -30,7 +30,7 @@ const CrearTurno = () => {
       [name]: newValue,
     }));
 
-    // Si se modifica la fecha, actualiza el campo "dia"
+    // Actualiza el día automáticamente cuando cambia la fecha
     if (name === "fecha") {
       const localDate = new Date(value + "T00:00:00");
       const dias = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
@@ -42,58 +42,45 @@ const CrearTurno = () => {
     }
   };
 
-  const generarFechas = (fechaInicial, repetir) => {
-    const fechas = [];
-    const fecha = new Date(fechaInicial);
-    if (!repetir) {
-      fechas.push(new Date(fecha));
-    } else {
-      for (let i = 0; i < 8; i++) {
-        fechas.push(new Date(fecha));
-        fecha.setDate(fecha.getDate() + 7);
-      }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    if (!formData.fecha || !formData.hora) {
+      setError("La fecha y hora son obligatorias.");
+      return;
     }
-    return fechas;
+
+    try {
+      const token = localStorage.getItem("token");
+
+      // Combinar fecha y hora en formato ISO para backend
+      const fechaHoraISO = new Date(`${formData.fecha}T${formData.hora}`).toISOString();
+
+      const nuevoTurno = {
+        sede: formData.sede,
+        nivel: formData.nivel,
+        hora: formData.hora,
+        fecha: fechaHoraISO,
+        cuposDisponibles: formData.cuposDisponibles,
+        repetirDosMeses: formData.repetirDosMeses || false,
+      };
+
+      const response = await axios.post(
+        "https://astrosfrontend.onrender.com/api/turnos",
+        nuevoTurno,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      console.log(response.data);
+      navigate("/turnos");
+    } catch (err) {
+      setError("Error al crear el turno. Verifica los datos.");
+      console.error(err.response?.data || err.message);
+    }
   };
-
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  setError("");
-
-  if (!formData.fecha || !formData.hora) {
-    setError("La fecha y hora son obligatorias.");
-    return;
-  }
-
-  try {
-    const token = localStorage.getItem("token");
-
-    const fechaISO = new Date(formData.fecha).toISOString();
-
-    const nuevoTurno = {
-      sede: formData.sede,
-      nivel: formData.nivel,
-      hora: formData.hora,
-      fecha: fechaISO,
-      cuposDisponibles: formData.cuposDisponibles,
-      repetirDosMeses: formData.repetirDosMeses || false,
-    };
-
-    const response = await axios.post(
-      "https://astrosfrontend.onrender.com/api/turnos",
-      nuevoTurno,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
-
-    console.log(response.data);
-    navigate("/turnos");
-  } catch (err) {
-    setError("Error al crear el turno. Verifica los datos.");
-    console.error(err.response?.data || err.message);
-  }
-};
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 p-6">
@@ -135,7 +122,7 @@ const handleSubmit = async (e) => {
             </select>
           </label>
 
-          {/* Día (solo lectura, se actualiza automáticamente) */}
+          {/* Día (solo lectura) */}
           <label className="block">
             <span className="text-gray-700">Día:</span>
             <input
@@ -173,7 +160,7 @@ const handleSubmit = async (e) => {
             />
           </label>
 
-          {/* Cupos */}
+          {/* Cupos Disponibles */}
           <label className="block">
             <span className="text-gray-700">Cupos Disponibles:</span>
             <input
@@ -196,7 +183,9 @@ const handleSubmit = async (e) => {
               onChange={handleChange}
               className="h-4 w-4"
             />
-            <span className="text-gray-700">Repetir este turno cada semana por 2 meses</span>
+            <span className="text-gray-700">
+              Repetir este turno cada semana por 2 meses
+            </span>
           </label>
 
           <button
