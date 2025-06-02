@@ -174,19 +174,7 @@ const CrearTurno = () => {
             />
           </label>
 
-          {/* Repetir */}
-          <label className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              name="repetirDosMeses"
-              checked={formData.repetirDosMeses}
-              onChange={handleChange}
-              className="h-4 w-4"
-            />
-            <span className="text-gray-700">
-              Repetir este turno cada semana por 2 meses
-            </span>
-          </label>
+          
 
           <button
             type="submit"
