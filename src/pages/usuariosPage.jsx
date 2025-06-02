@@ -17,7 +17,13 @@ const UsuariosPage = () => {
           "https://astrosfrontend.onrender.com/api/users/usuarios",
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        setUsuarios(data);
+        // Ordenar alfabéticamente por firstName, luego lastName
+        const ordenados = data.sort((a, b) => {
+          const nombreA = `${a.firstName} ${a.lastName}`.toLowerCase();
+          const nombreB = `${b.firstName} ${b.lastName}`.toLowerCase();
+          return nombreA.localeCompare(nombreB);
+        });
+        setUsuarios(ordenados);
       } catch (err) {
         console.error("Error al obtener usuarios:", err.response?.data || err.message);
       }
@@ -27,7 +33,6 @@ const UsuariosPage = () => {
   }, []);
 
   const verTurnosMensuales = (userId) => navigate(`/turnosMensuales/${userId}`);
-  const verTurnosSemanales = (userId) => navigate(`/turnosSemanales/${userId}`);
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
@@ -59,6 +64,7 @@ const UsuariosPage = () => {
                     <span className="text-sm text-gray-600">({user.username})</span>
                   </span>
                   <p className="text-sm text-gray-600">Email: {user.email || "—"}</p>
+                  <p className="text-sm text-gray-600">Teléfono: {user.telefono || "—"}</p>
                   <p className="text-sm font-medium text-gray-800">Rol: {user.role}</p>
                   <p className="text-sm text-gray-600">
                     Creado: {new Date(user.createdAt).toLocaleDateString()}
@@ -80,12 +86,6 @@ const UsuariosPage = () => {
                     className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
                   >
                     Turnos Mensuales
-                  </button>
-                  <button
-                    onClick={() => verTurnosSemanales(user._id)}
-                    className="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 rounded focus:outline-none focus:ring-2 focus:ring-green-300 transition"
-                  >
-                    Turnos Semanales
                   </button>
                   <button
                     onClick={() => navigate(`/editarUsuarios/${user._id}`)}

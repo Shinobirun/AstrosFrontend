@@ -9,8 +9,10 @@ const UpdateUserPage = () => {
   const [username, setUsername] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");           // ← nuevo estado
+  const [telefono, setTelefono] = useState("");     // ← nuevo estado
   const [role, setRole] = useState("");
-  const [password, setPassword] = useState("");           // <-- nuevo estado
+  const [password, setPassword] = useState("");
   const [activo, setActivo] = useState(true);
 
   const [loading, setLoading] = useState(true);
@@ -33,6 +35,8 @@ const UpdateUserPage = () => {
           setUsername(user.username);
           setFirstName(user.firstName);
           setLastName(user.lastName);
+          setEmail(user.email || "");           // ← asignar email
+          setTelefono(user.telefono || "");     // ← asignar teléfono
           setRole(user.role);
           setActivo(user.activo);
         }
@@ -46,7 +50,7 @@ const UpdateUserPage = () => {
     fetchUser();
   }, [userId]);
 
-  // 2) Guardar cambios generales (incluye contraseña si se ingresó)
+  // 2) Guardar cambios (incluye email y teléfono, y contraseña opcional)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
@@ -54,12 +58,14 @@ const UpdateUserPage = () => {
 
     try {
       const token = localStorage.getItem("token");
-      // Armamos el body dinámicamente: solo incluimos password si no está vacío
+      // Armar body dinámicamente
       const body = {
         id: userId,
         username,
-        first_name: firstName,
-        last_name: lastName,
+        firstName,
+        lastName,
+        email,       // ← incluir email
+        telefono,    // ← incluir teléfono
         role,
         activo,
       };
@@ -73,7 +79,7 @@ const UpdateUserPage = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setMessage({ type: "success", text: "Usuario actualizado correctamente." });
-      setPassword(""); // limpiamos el input de contraseña
+      setPassword(""); // limpiar contraseña
     } catch (err) {
       console.error(err);
       setMessage({ type: "error", text: "Error al actualizar usuario." });
@@ -152,6 +158,30 @@ const UpdateUserPage = () => {
             value={lastName}
             onChange={(e) => setLastName(e.target.value)}
             required
+          />
+        </div>
+
+        {/* Email */}
+        <div>
+          <label className="block text-sm mb-1">Email</label>
+          <input
+            type="email"
+            className="w-full border px-3 py-2 rounded"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Correo electrónico (opcional)"
+          />
+        </div>
+
+        {/* Teléfono */}
+        <div>
+          <label className="block text-sm mb-1">Teléfono</label>
+          <input
+            type="tel"
+            className="w-full border px-3 py-2 rounded"
+            value={telefono}
+            onChange={(e) => setTelefono(e.target.value)}
+            placeholder="Teléfono (opcional)"
           />
         </div>
 
