@@ -117,10 +117,10 @@ const Dashboard = () => {
                 Asignar Turno Mensual
               </button>
               <button
-                onClick={() => navigate("/asignarTurSemanal")}
-                className={`${btnBase} bg-orange-500 hover:bg-orange-600 text-white focus:ring-orange-300`}
+                onClick={() => navigate("/dashboard")}
+                className={`${btnBase} bg-yellow-500 hover:bg-yellow-600 text-white focus:ring-orange-300`}
               >
-                Asignar Turno Semanal
+                en construccion
               </button>
             </>
           )}

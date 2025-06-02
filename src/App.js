@@ -10,9 +10,9 @@ import PerfilPage from "./pages/perfilPage";
 import CrearTurno from "./components/forms/crearTurno.jsx";
 import EliminarTurno from "./components/forms/eliminarTurno.jsx";
 import AsignarTurno from "./components/forms/asignarTurno.jsx";
-import AsignarTurSema from "./components/forms/asignarTurSemanal.jsx";
+
 import TurnosMensualesPage from "./pages/turnosMensualesPage.jsx";
-import TurnosSemanalesPage from "./pages/turnosSemanalesPage.jsx";
+
 import UpdateUserPage from "./pages/UpdateUserPage.jsx";
 import CreateCreditPage from "./pages/CreateCreditPage.jsx"
 import MisTurnos from "./pages/misTurnos.jsx";
@@ -43,12 +43,10 @@ function App() {
       <Route path="/dashboard" element={<ProtectedRoute element={<Dashboard />} />} />
       <Route path="/turnos" element={<ProtectedRoute element={<TurnosPage />} />} />
       <Route path="/usuarios" element={<ProtectedRoute element={<UsuariosPage />} />} />
-      <Route path="/turnosSemanales" element={<ProtectedRoute element={<MisTurnosDisponibles />} />} />
       <Route path="/perfil" element={<ProtectedRoute element={<PerfilPage />} />} />
       <Route path="/crearTurno" element={<ProtectedRoute element={<CrearTurno />} />} />
       <Route path="/eliminarTurno" element={<ProtectedRoute element={<EliminarTurno />} />} />
       <Route path="/asignarTurno" element={<ProtectedRoute element={<AsignarTurno />} />} />
-      <Route path="/asignarTurSemanal" element={<ProtectedRoute element={<AsignarTurSema />} />} />
       <Route path="/misTurnos" element={<ProtectedRoute element={<MisTurnos />} />} />
       
 
@@ -57,10 +55,7 @@ function App() {
         path="/turnosMensuales/:userId"
         element={<ProtectedRoute element={<TurnosMensualesPage />} />}
       />
-      <Route
-        path="/turnosSemanales/:userId"
-        element={<ProtectedRoute element={<TurnosSemanalesPage />} />}
-      />
+      
       <Route
         path="/editarUsuarios/:userId"
         element={<ProtectedRoute element={<UpdateUserPage />} />}
