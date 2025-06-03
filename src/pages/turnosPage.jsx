@@ -21,6 +21,9 @@ const TurnosPage = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [jugadoresDelTurno, setJugadoresDelTurno] = useState([]);
   const [loadingJugadores, setLoadingJugadores] = useState(false);
+  const [modalTurnosDelDia, setModalTurnosDelDia] = useState(false);
+  const [fechaSeleccionada, setFechaSeleccionada] = useState(null);
+  const [turnosDelDia, setTurnosDelDia] = useState([]);
 
   useEffect(() => {
     fetchTurnos();
@@ -29,12 +32,9 @@ const TurnosPage = () => {
   const fetchTurnos = async () => {
     try {
       const token = localStorage.getItem("token");
-      const { data } = await axios.get(
-        "https://astrosfrontend.onrender.com/api/turnos/todos",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const { data } = await axios.get("https://astrosfrontend.onrender.com/api/turnos/todos", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setTurnos(data.map((t) => ({ ...t, fecha: parseISO(t.fecha) })));
     } catch (error) {
       console.error("Error al obtener los turnos:", error.message);
@@ -77,27 +77,32 @@ const TurnosPage = () => {
     }
   };
 
-  const renderHeader = () => {
-    return (
-      <div className="flex justify-between items-center mb-4">
-        <button
-          onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-          className="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded"
-        >
-          ← Mes anterior
-        </button>
-        <span className="text-xl font-semibold">
-          {format(currentMonth, "MMMM yyyy", { locale: es })}
-        </span>
-        <button
-          onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-          className="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded"
-        >
-          Mes siguiente →
-        </button>
-      </div>
-    );
+  const abrirModalDelDia = (dia) => {
+    const turnosDia = turnos.filter((t) => isSameDay(dia, t.fecha));
+    setFechaSeleccionada(dia);
+    setTurnosDelDia(turnosDia);
+    setModalTurnosDelDia(true);
   };
+
+  const renderHeader = () => (
+    <div className="flex justify-between items-center mb-4">
+      <button
+        onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
+        className="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded"
+      >
+        ← Mes anterior
+      </button>
+      <span className="text-xl font-semibold">
+        {format(currentMonth, "MMMM yyyy", { locale: es })}
+      </span>
+      <button
+        onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
+        className="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded"
+      >
+        Mes siguiente →
+      </button>
+    </div>
+  );
 
   const renderDays = () => {
     const days = [];
@@ -113,21 +118,21 @@ const TurnosPage = () => {
 
       days.push(
         <div
-          className={`border p-2 h-32 align-top overflow-y-auto text-sm ${
+          className={`border p-2 h-32 align-top overflow-y-auto text-sm cursor-pointer ${
             !isSameMonth(day, currentMonth) ? "bg-gray-100 text-gray-400" : "bg-white text-black"
           } ${isSameDay(day, date) ? "border-4 border-green-600" : ""}`}
           key={day}
+          onClick={() => abrirModalDelDia(cloneDay)}
         >
           <div className="font-bold text-xs text-gray-700">{formattedDate}</div>
-          {turnosDelDia.map((turno) => (
-            <div
-              key={turno._id}
-              className="bg-blue-200 mt-1 p-1 rounded cursor-pointer hover:bg-blue-300"
-              onClick={() => mostrarJugadores(turno)}
-            >
-              {turno.hora} - {turno.nivel} - {turno.sede}
+          {turnosDelDia.slice(0, 3).map((turno, i) => (
+            <div key={i} className="bg-blue-100 mt-1 p-1 rounded text-xs truncate">
+              {turno.hora} - {turno.nivel}
             </div>
           ))}
+          {turnosDelDia.length > 3 && (
+            <div className="text-xs text-blue-600 mt-1">+ más</div>
+          )}
         </div>
       );
       day = addDays(day, 1);
@@ -147,9 +152,7 @@ const TurnosPage = () => {
 
   return (
     <div className="p-4 bg-gray-100 min-h-screen">
-      <h2 className="text-2xl font-bold text-center mb-4">
-        Calendario de Turnos
-      </h2>
+      <h2 className="text-2xl font-bold text-center mb-4">Calendario de Turnos</h2>
 
       {renderHeader()}
 
@@ -163,6 +166,7 @@ const TurnosPage = () => {
 
       {renderDays()}
 
+      {/* Modal de jugadores */}
       {modalVisible && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-96 max-w-full">
@@ -182,6 +186,38 @@ const TurnosPage = () => {
             )}
             <button
               onClick={() => setModalVisible(false)}
+              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de turnos del día */}
+      {modalTurnosDelDia && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-40">
+          <div className="bg-white p-4 rounded-lg shadow-lg w-96 max-w-full">
+            <h3 className="text-lg font-semibold mb-2">
+              Turnos del {format(fechaSeleccionada, "PPP", { locale: es })}
+            </h3>
+            {turnosDelDia.length > 0 ? (
+              <ul className="space-y-2">
+                {turnosDelDia.map((turno) => (
+                  <li
+                    key={turno._id}
+                    onClick={() => mostrarJugadores(turno)}
+                    className="p-2 bg-blue-200 rounded hover:bg-blue-300 cursor-pointer"
+                  >
+                    {turno.hora} - {turno.nivel} - {turno.sede}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>No hay turnos para este día.</p>
+            )}
+            <button
+              onClick={() => setModalTurnosDelDia(false)}
               className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
             >
               Cerrar
