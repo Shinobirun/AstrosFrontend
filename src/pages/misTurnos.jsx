@@ -18,7 +18,7 @@ function MisTurnos() {
       try {
         const token = localStorage.getItem('token');
         const config = { headers: { Authorization: `Bearer ${token}` } };
-        const { data } = await axios.get('https://astrosfrontend.onrender.com/api/turnosSemanales/misTurnos', config);
+        const { data } = await axios.get('https://astrosfrontend.onrender.com/api/turnos/misTurnos', config);
         setTurnosSemanales(data.turnosSemanales || []);
         setTurnosMensuales(data.turnosMensuales || []);
         setLoading(false);
@@ -51,7 +51,7 @@ function MisTurnos() {
       const token = localStorage.getItem('token');
       const config = { headers: { Authorization: `Bearer ${token}` } };
 
-      await axios.put('https://astrosfrontend.onrender.com/api/turnosSemanales/liberarSema', { turnoId }, config);
+      await axios.put('https://astrosfrontend.onrender.com/api/turnos/liberarSema', { turnoId }, config);
 
       if (filtro === 'semanal') {
         setTurnosSemanales(prev => prev.filter(t => t._id !== turnoId));
