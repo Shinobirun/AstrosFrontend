@@ -1,165 +1,250 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom'; 
-import axios from 'axios';
+import { useEffect, useState } from 'react';
+import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  startOfWeek,
+  endOfWeek,
+  addDays,
+  addMonths,
+  subMonths,
+  isSameDay,
+  isSameMonth,
+  parseISO
+} from 'date-fns';
+import es from 'date-fns/locale/es';
 
-function MisTurnos() {
-  const [turnosSemanales, setTurnosSemanales] = useState([]);
-  const [turnosMensuales, setTurnosMensuales] = useState([]);
+const MisTurnos = () => {
+  const [turnos, setTurnos] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [filtro, setFiltro] = useState('semanal');
-  const [modalMensaje, setModalMensaje] = useState(null); // Estado modal
+  const [mensaje, setMensaje] = useState('');
+  const [currentMonth, setCurrentMonth] = useState(new Date());
 
-  const navigate = useNavigate();
-  const diasOrden = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
-
-  useEffect(() => {
-    const fetchTurnos = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const config = { headers: { Authorization: `Bearer ${token}` } };
-        const { data } = await axios.get('https://astrosfrontend.onrender.com/api/turnos/misTurnos', config);
-        setTurnosSemanales(data.turnosSemanales || []);
-        setTurnosMensuales(data.turnosMensuales || []);
-        setLoading(false);
-      } catch (err) {
-        setError('Error al cargar los turnos');
-        setLoading(false);
-      }
-    };
-    fetchTurnos();
-  }, []);
-
-  const ordenarTurnos = (turnos) => {
-    return [...turnos].sort((a, b) => {
-      const diaA = diasOrden.indexOf(a.dia);
-      const diaB = diasOrden.indexOf(b.dia);
-      if (diaA !== diaB) return diaA - diaB;
-
-      const [horaA, minA] = a.hora.split(':').map(Number);
-      const [horaB, minB] = b.hora.split(':').map(Number);
-
-      return horaA !== horaB ? horaA - horaB : minA - minB;
-    });
-  };
-
-  const liberarTurno = async (turnoId) => {
-    const confirmar = window.confirm('¿Estás seguro de que querés liberar este turno? Se generará un crédito.');
-    if (!confirmar) return;
-
+  // Carga de turnos asignados
+  const obtenerTurnos = async () => {
     try {
       const token = localStorage.getItem('token');
-      const config = { headers: { Authorization: `Bearer ${token}` } };
+      if (!token) throw new Error('No hay token disponible');
 
-      await axios.put('https://astrosfrontend.onrender.com/api/turnos/liberarSema', { turnoId }, config);
+      const res = await fetch('https://astrosfrontend.onrender.com/api/turnos/misTurnos', {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
 
-      if (filtro === 'semanal') {
-        setTurnosSemanales(prev => prev.filter(t => t._id !== turnoId));
-      } else {
-        setTurnosMensuales(prev => prev.filter(t => t._id !== turnoId));
+      const text = await res.text();
+      if (!res.ok) {
+        console.error('Respuesta del servidor:', text);
+        throw new Error(`Error ${res.status}: ${text}`);
       }
 
-      // Cambié alert por modal
-      setModalMensaje('Turno liberado correctamente. Se ha generado un crédito.');
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (parseError) {
+        console.error('No se pudo parsear como JSON:', text);
+        throw new Error('La respuesta del servidor no es JSON válido.');
+      }
+
+      // Convertir fechas a objetos Date
+      setTurnos(data.map((t) => ({ ...t, fecha: parseISO(t.fecha) })));
     } catch (error) {
-      console.error(error);
-      setModalMensaje('Error al liberar el turno.');
+      console.error('Error obteniendo turnos:', error);
+      setMensaje('No se pudieron cargar los turnos.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (loading)
+  // Liberar un turno
+  const liberarTurno = async (turnoId) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('No hay token disponible');
+
+      const res = await fetch('https://astrosfrontend.onrender.com/api/turnos/liberar', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ turnoId }),
+      });
+
+      const text = await res.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new Error('La respuesta del servidor no es JSON válido.');
+      }
+
+      if (res.ok) {
+        setTurnos((prev) => prev.filter((t) => t._id !== turnoId));
+        setMensaje('Turno liberado correctamente.');
+      } else {
+        setMensaje(data.message || 'Error al liberar el turno.');
+      }
+    } catch (error) {
+      console.error('Error liberando turno:', error);
+      setMensaje('Error del servidor al liberar turno.');
+    }
+  };
+
+  useEffect(() => {
+    obtenerTurnos();
+  }, []);
+
+  // Navegación del calendario
+  const prevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
+  const nextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
+
+  // Render de encabezado del calendario
+  const renderHeader = () => (
+    <div className="flex justify-between items-center mb-2">
+      <button
+        onClick={prevMonth}
+        className="bg-gray-300 hover:bg-gray-400 px-3 py-1 rounded"
+      >
+        ← Mes anterior
+      </button>
+      <span className="text-lg font-semibold">
+        {format(currentMonth, 'MMMM yyyy', { locale: es })}
+      </span>
+      <button
+        onClick={nextMonth}
+        className="bg-gray-300 hover:bg-gray-400 px-3 py-1 rounded"
+      >
+        Mes siguiente →
+      </button>
+    </div>
+  );
+
+  // Render de la cabecera de días de la semana
+  const renderDays = () => {
+    const days = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
     return (
-      <div className="flex justify-center items-center h-screen">
-        <p className="text-gray-700 text-lg">Cargando turnos...</p>
+      <div className="grid grid-cols-7 text-center font-medium text-sm text-gray-700 mb-1">
+        {days.map((day) => (
+          <div key={day} className="p-1 border">
+            {day}
+          </div>
+        ))}
       </div>
     );
+  };
 
-  if (error)
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <p className="text-red-600 text-lg">{error}</p>
-      </div>
-    );
+  // Render de las celdas del calendario, ocultando turnos previos al día actual
+  const renderCells = () => {
+    const monthStart = startOfMonth(currentMonth);
+    const monthEnd = endOfMonth(currentMonth);
+    const startDate = startOfWeek(monthStart, { weekStartsOn: 1 });
+    const endDate = endOfWeek(monthEnd, { weekStartsOn: 1 });
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-  const turnosAMostrar = filtro === 'semanal' ? turnosSemanales : turnosMensuales;
-  const turnosOrdenados = ordenarTurnos(turnosAMostrar);
+    const rows = [];
+    let day = startDate;
+
+    while (day <= endDate) {
+      const week = [];
+
+      for (let i = 0; i < 7; i++) {
+        const cloneDay = day;
+        const formattedDate = format(cloneDay, 'd');
+
+        // Determinar si es día anterior a “hoy”
+        const dayStart = new Date(cloneDay);
+        dayStart.setHours(0, 0, 0, 0);
+        const isBeforeToday = dayStart < today;
+
+        // Filtrar turnos de ese día (solo si no es anterior a hoy)
+        const turnosDelDia = isBeforeToday
+          ? []
+          : turnos.filter((t) => isSameDay(cloneDay, t.fecha));
+
+        week.push(
+          <div
+            key={cloneDay.toString()}
+            className={`
+              border p-1 h-24 text-xs overflow-y-auto cursor-default ${
+              !isSameMonth(cloneDay, currentMonth)
+                ? 'bg-gray-100 text-gray-400'
+                : isBeforeToday
+                  ? 'bg-gray-100 text-gray-400'
+                  : 'bg-white text-black'
+            } ${isSameDay(cloneDay, today) ? 'border-2 border-green-600' : ''}
+            `}
+          >
+            <div className={`font-bold mb-1 ${isBeforeToday ? 'text-gray-400' : ''}`}>
+              {formattedDate}
+            </div>
+            {turnosDelDia.map((turno, idx) => (
+              <div
+                key={idx}
+                className="bg-blue-100 text-xs rounded px-1 mb-0.5 truncate"
+                title={`${turno.hora} - ${turno.nivel} - ${turno.sede}`}
+              >
+                {turno.hora}
+              </div>
+            ))}
+          </div>
+        );
+        day = addDays(day, 1);
+      }
+
+      rows.push(
+        <div className="grid grid-cols-7 gap-px" key={day.toString()}>
+          {week}
+        </div>
+      );
+    }
+
+    return <div>{rows}</div>;
+  };
+
+  if (loading) return <div className="p-4">Cargando turnos…</div>;
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50 p-6 relative">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">Mis Turnos {filtro === 'semanal' ? 'Semanales' : 'Mensuales'}</h2>
+    <div className="p-4">
+      {mensaje && <p className="mb-4 text-red-600">{mensaje}</p>}
 
-      <div className="mb-6 flex space-x-4">
-        <button
-          onClick={() => setFiltro('semanal')}
-          disabled={filtro === 'semanal'}
-          className={`px-6 py-2 rounded-lg font-semibold transition-colors duration-300 focus:outline-none
-            ${filtro === 'semanal'
-              ? 'bg-blue-600 text-white cursor-default shadow-lg'
-              : 'bg-white text-blue-600 border-2 border-blue-600 hover:bg-blue-50'}`}
-        >
-          Semanales
-        </button>
-        <button
-          onClick={() => setFiltro('mensual')}
-          disabled={filtro === 'mensual'}
-          className={`px-6 py-2 rounded-lg font-semibold transition-colors duration-300 focus:outline-none
-            ${filtro === 'mensual'
-              ? 'bg-blue-600 text-white cursor-default shadow-lg'
-              : 'bg-white text-blue-600 border-2 border-blue-600 hover:bg-blue-50'}`}
-        >
-          Mensuales
-        </button>
-      </div>
-
-      {turnosOrdenados.length === 0 ? (
-        <p className="text-gray-500 text-lg">No tenés turnos {filtro} asignados.</p>
+      {turnos.length === 0 ? (
+        <p>No tenés turnos asignados.</p>
       ) : (
-        <ul className="w-full max-w-md bg-white shadow-md rounded-lg p-6 space-y-4">
-          {turnosOrdenados.map((turno) => (
-            <li key={turno._id || turno.id} className="border-b border-gray-200 pb-3 last:border-0">
-              <p className="font-medium text-gray-800">{turno.fecha} - {turno.hora}</p>
-              <p className="text-gray-600">{turno.descripcion}</p>
-              <p className="text-gray-600"><span className="font-semibold">Sede:</span> {turno.sede}</p>
-              <p className="text-gray-600"><span className="font-semibold">Día:</span> {turno.dia}</p>
-              <p className="text-gray-600">
-                <span className="font-semibold">Cupos disponibles:</span>{' '}
-                {(Number(turno.cuposDisponibles) || 0) - (turno.ocupadoPor?.length || 0)}
-              </p>
+        <ul className="space-y-4 mb-6">
+          {turnos.map((turno) => (
+            <li
+              key={turno._id}
+              className="border rounded-lg p-4 bg-white shadow-sm flex justify-between items-center"
+            >
+              <div>
+                <p><strong>Sede:</strong> {turno.sede}</p>
+                <p><strong>Nivel:</strong> {turno.nivel}</p>
+                <p><strong>Día:</strong> {turno.dia}</p>
+                <p><strong>Fecha:</strong> {format(turno.fecha, 'dd/MM/yyyy')}</p>
+                <p><strong>Hora:</strong> {turno.hora}</p>
+              </div>
               <button
                 onClick={() => liberarTurno(turno._id)}
-                className="mt-2 px-4 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600"
+                className="ml-4 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
               >
-                Liberar turno
+                Liberar
               </button>
             </li>
           ))}
         </ul>
       )}
 
-      {/* Botón para volver al dashboard */}
-      <button
-        onClick={() => navigate('/dashboard')}
-        className="mt-8 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
-      >
-        Volver al Dashboard
-      </button>
-
-      {/* Modal para mensajes */}
-      {modalMensaje && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-sm w-full shadow-lg text-center">
-            <p className="mb-4 text-gray-800">{modalMensaje}</p>
-            <button
-              onClick={() => setModalMensaje(null)}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-            >
-              Cerrar
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Calendario: solo desde hoy en adelante */}
+      <div className="bg-white p-4 rounded-lg shadow">
+        {renderHeader()}
+        {renderDays()}
+        {renderCells()}
+      </div>
     </div>
   );
-}
+};
 
 export default MisTurnos;
