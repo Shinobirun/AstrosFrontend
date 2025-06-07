@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -12,66 +11,69 @@ const MisTurnosDisponibles = () => {
   const navigate = useNavigate();
 
   const fetchTurnos = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const { data } = await axios.get(
-        'https://astrosfrontend.onrender.com/api/turnosSemanales/disponibles',
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setTurnos(data);
-    } catch (err) {
-      setError('Error al cargar los turnos');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    const token = localStorage.getItem('token');
+    const { data } = await axios.get(
+      'https://astrosfrontend.onrender.com/api/turnos/segunRol',
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    setTurnos(data);
+  } catch (err) {
+    setError('Error al cargar los turnos');
+    console.error(err);
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     fetchTurnos();
   }, []);
 
   const eliminarCreditoMasAntiguo = async () => {
-  try {
-    const token = localStorage.getItem('token');
-    await axios.delete(
-      'https://astrosfrontend.onrender.com/api/users/creditos/oldest',
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-  } catch (err) {
-    console.error('Error al eliminar crédito más antiguo:', err);
-  }
-};
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(
+        'https://astrosfrontend.onrender.com/api/users/creditos/oldest',
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+    } catch (err) {
+      console.error('Error al eliminar crédito más antiguo:', err);
+    }
+  };
 
   const tomarTurno = async (turnoId) => {
     try {
       const token = localStorage.getItem('token');
-      // 1) Tomar turno
+
+      // 1) Tomar turno mensual
       await axios.post(
-        `https://astrosfrontend.onrender.com/api/turnosSemanales/tomar/${turnoId}`,
-        {},
+        'https://astrosfrontend.onrender.com/api/turnos/asignarAlumno',
+        { turnoId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      // 2) Eliminar crédito más antiguo
+
+      // 2) Eliminar crédito
       await eliminarCreditoMasAntiguo();
-      // 3) Mensaje y refresco
-      setMensaje('Turno tomado y crédito eliminado correctamente');
+
+      // 3) Mostrar mensaje y refrescar turnos
+      setMensaje('Turno mensual tomado correctamente');
       setModalVisible(true);
       fetchTurnos();
     } catch (err) {
-      const msg = err.response?.data?.message || 'Error al tomar el turno';
+      const msg = err.response?.data?.message || 'Error al tomar el turno mensual';
       setMensaje(msg);
       setModalVisible(true);
     }
   };
 
   if (loading) return <p className="text-center mt-10">Cargando turnos...</p>;
-  if (error)   return <p className="text-center text-red-600 mt-10">{error}</p>;
+  if (error) return <p className="text-center text-red-600 mt-10">{error}</p>;
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-4 relative">
       <div className="w-full max-w-2xl bg-white p-6 rounded shadow">
-        <h2 className="text-2xl font-bold mb-4 text-center">Turnos Disponibles</h2>
+        <h2 className="text-2xl font-bold mb-4 text-center">Turnos Mensuales Disponibles</h2>
 
         {turnos.length === 0 ? (
           <p className="text-center">No hay turnos disponibles</p>
@@ -86,6 +88,7 @@ const MisTurnosDisponibles = () => {
                 <p><strong>Nivel:</strong> {turno.nivel}</p>
                 <p><strong>Día:</strong> {turno.dia}</p>
                 <p><strong>Hora:</strong> {turno.hora}</p>
+                <p><strong>Fecha:</strong> {new Date(turno.fecha).toLocaleDateString()}</p>
                 <p>
                   <strong>Cupos disponibles:</strong>{' '}
                   {turno.cuposDisponibles - turno.ocupadoPor.length}

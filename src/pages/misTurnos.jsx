@@ -10,7 +10,7 @@ import {
   subMonths,
   isSameDay,
   isSameMonth,
-  parseISO
+  parseISO,
 } from 'date-fns';
 import es from 'date-fns/locale/es';
 
@@ -20,7 +20,6 @@ const MisTurnos = () => {
   const [mensaje, setMensaje] = useState('');
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
-  // Carga de turnos asignados
   const obtenerTurnos = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -29,7 +28,7 @@ const MisTurnos = () => {
       const res = await fetch('https://astrosfrontend.onrender.com/api/turnos/misTurnos', {
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -47,8 +46,14 @@ const MisTurnos = () => {
         throw new Error('La respuesta del servidor no es JSON válido.');
       }
 
-      // Convertir fechas a objetos Date
-      setTurnos(data.map((t) => ({ ...t, fecha: parseISO(t.fecha) })));
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
+
+      const turnosFiltrados = data
+        .map((t) => ({ ...t, fecha: parseISO(t.fecha) }))
+        .filter((t) => t.fecha >= hoy);
+
+      setTurnos(turnosFiltrados);
     } catch (error) {
       console.error('Error obteniendo turnos:', error);
       setMensaje('No se pudieron cargar los turnos.');
@@ -57,7 +62,6 @@ const MisTurnos = () => {
     }
   };
 
-  // Liberar un turno
   const liberarTurno = async (turnoId) => {
     try {
       const token = localStorage.getItem('token');
@@ -67,7 +71,7 @@ const MisTurnos = () => {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ turnoId }),
       });
@@ -96,11 +100,9 @@ const MisTurnos = () => {
     obtenerTurnos();
   }, []);
 
-  // Navegación del calendario
   const prevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
   const nextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
 
-  // Render de encabezado del calendario
   const renderHeader = () => (
     <div className="flex justify-between items-center mb-2">
       <button
@@ -121,7 +123,6 @@ const MisTurnos = () => {
     </div>
   );
 
-  // Render de la cabecera de días de la semana
   const renderDays = () => {
     const days = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
     return (
@@ -135,7 +136,6 @@ const MisTurnos = () => {
     );
   };
 
-  // Render de las celdas del calendario, ocultando turnos previos al día actual
   const renderCells = () => {
     const monthStart = startOfMonth(currentMonth);
     const monthEnd = endOfMonth(currentMonth);
@@ -154,12 +154,10 @@ const MisTurnos = () => {
         const cloneDay = day;
         const formattedDate = format(cloneDay, 'd');
 
-        // Determinar si es día anterior a “hoy”
         const dayStart = new Date(cloneDay);
         dayStart.setHours(0, 0, 0, 0);
         const isBeforeToday = dayStart < today;
 
-        // Filtrar turnos de ese día (solo si no es anterior a hoy)
         const turnosDelDia = isBeforeToday
           ? []
           : turnos.filter((t) => isSameDay(cloneDay, t.fecha));
@@ -169,12 +167,12 @@ const MisTurnos = () => {
             key={cloneDay.toString()}
             className={`
               border p-1 h-24 text-xs overflow-y-auto cursor-default ${
-              !isSameMonth(cloneDay, currentMonth)
-                ? 'bg-gray-100 text-gray-400'
-                : isBeforeToday
+                !isSameMonth(cloneDay, currentMonth)
                   ? 'bg-gray-100 text-gray-400'
-                  : 'bg-white text-black'
-            } ${isSameDay(cloneDay, today) ? 'border-2 border-green-600' : ''}
+                  : isBeforeToday
+                    ? 'bg-gray-100 text-gray-400'
+                    : 'bg-white text-black'
+              } ${isSameDay(cloneDay, today) ? 'border-2 border-green-600' : ''}
             `}
           >
             <div className={`font-bold mb-1 ${isBeforeToday ? 'text-gray-400' : ''}`}>
@@ -237,7 +235,6 @@ const MisTurnos = () => {
         </ul>
       )}
 
-      {/* Calendario: solo desde hoy en adelante */}
       <div className="bg-white p-4 rounded-lg shadow">
         {renderHeader()}
         {renderDays()}

@@ -114,13 +114,13 @@ const Dashboard = () => {
                 onClick={() => navigate("/asignarTurno")}
                 className={`${btnBase} bg-orange-500 hover:bg-orange-600 text-white focus:ring-orange-300`}
               >
-                Asignar Turno Mensual
+                Asignar Turno Individual
               </button>
               <button
-                onClick={() => navigate("/dashboard")}
+                onClick={() => navigate("/asignarTurnoMensual")}
                 className={`${btnBase} bg-yellow-500 hover:bg-yellow-600 text-white focus:ring-orange-300`}
               >
-                en construccion
+                Asignar turno mensual
               </button>
             </>
           )}
@@ -134,7 +134,7 @@ const Dashboard = () => {
                 Mis Turnos
               </button>
               <button
-                onClick={() => navigate("/turnosSemanales")}
+                onClick={() => navigate("/misTurnosDisponibles")}
                 className={`${btnBase} bg-indigo-600 hover:bg-indigo-700 text-white focus:ring-red-300`}
               >
                 Turnos disponibles
