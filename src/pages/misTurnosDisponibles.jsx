@@ -42,12 +42,12 @@ const MisTurnosDisponibles = () => {
         { turnoId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setMensaje('Turno mensual tomado correctamente');
+      setMensaje('Turno tomado correctamente');
       setModalVisible(true);
       fetchTurnos();
     } catch (err) {
       console.error('Error al tomar turno:', err.response || err);
-      const msg = err.response?.data?.message || 'Error al tomar el turno mensual';
+      const msg = err.response?.data?.message || 'Error al tomar el turno';
       setMensaje(msg);
       setModalVisible(true);
     }
@@ -68,7 +68,7 @@ const MisTurnosDisponibles = () => {
 
       <div className="w-full max-w-2xl bg-white p-6 rounded shadow mt-12">
         <h2 className="text-2xl font-bold mb-4 text-center">
-          Turnos Mensuales Disponibles
+          Turnos Disponibles
         </h2>
 
         {turnos.length === 0 ? (
