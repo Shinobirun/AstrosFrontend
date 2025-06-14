@@ -90,7 +90,13 @@ const Dashboard = () => {
                 onClick={() => navigate("/crearTurno")}
                 className={`${btnBase} bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-300`}
               >
-                Crear Turno
+                Crear Turno único
+              </button>
+              <button
+                onClick={() => navigate("/crearTurnoMensual")}
+                className={`${btnBase} bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-300`}
+              >
+                Crear Turno Mensual
               </button>
               <button
                 onClick={() => navigate("/eliminarTurno")}
@@ -118,7 +124,7 @@ const Dashboard = () => {
               </button>
               <button
                 onClick={() => navigate("/asignarTurnoMensual")}
-                className={`${btnBase} bg-yellow-500 hover:bg-yellow-600 text-white focus:ring-orange-300`}
+                className={`${btnBase} bg-orange-500 hover:bg-orange-600 text-white focus:ring-orange-300`}
               >
                 Asignar turno mensual
               </button>
@@ -126,7 +132,7 @@ const Dashboard = () => {
           )}
 
           {isStudent && (
-            <>
+            <> 
               <button
                 onClick={() => navigate(`/misTurnos/`)}
                 className={`${btnBase} bg-purple-600 hover:bg-purple-700 text-white focus:ring-purple-300`}

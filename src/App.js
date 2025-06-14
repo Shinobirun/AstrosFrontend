@@ -17,6 +17,8 @@
   import UpdateUserPage from "./pages/UpdateUserPage.jsx";
   import CreateCreditPage from "./pages/CreateCreditPage.jsx"
   import MisTurnos from "./pages/misTurnos.jsx";
+  import PlantillaTurnoUsuario from "./pages/plantillaTurnoUsuario.jsx";
+  import CrearTurnoMensual from "./pages/crearTurnoMensual.jsx";
 
 
   // Componente para proteger rutas que requieren autenticación
@@ -51,6 +53,8 @@
         <Route path="/misTurnos" element={<ProtectedRoute element={<MisTurnos />} />} />
         <Route path="/misTurnosDisponibles" element={<ProtectedRoute element={<MisTurnosDisponibles />} />} />
         <Route path="/asignarTurnoMensual" element={<ProtectedRoute element={<AsignarTurnoMensual />} />} />
+        <Route path="/turnosPlantillaUsuario" element={<ProtectedRoute element={<PlantillaTurnoUsuario />} />}/>
+         <Route path="/crearTurnoMensual" element={<ProtectedRoute element={<CrearTurnoMensual />} />}/>
 
         {/* Nuevas páginas de turnos y edición */}
         <Route
